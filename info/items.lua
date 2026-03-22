@@ -83,6 +83,11 @@
     weight = 10
 },
 
+["empty_wine_bottle_labeled"] = {
+    label = "Bouteille de vin vide étiquetté",
+    weight = 10
+},
+
 ["wine_label"] = {
     label = "Étiquette de vin",
     weight = 10

@@ -6,6 +6,7 @@ description "Vineyard system"
 
 shared_scripts {
 	"@ox_lib/init.lua",
+	"@wtr_lib/init.lua",
 	"shared/*.lua"
 }
 

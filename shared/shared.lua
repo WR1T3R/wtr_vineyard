@@ -1,6 +1,13 @@
 return {
 	debugPoly = false,
 
+	maxPredefinedAmount = {
+		["fill"] = 20,
+		["step"] = 20,
+		["prepare"] = 60,
+		["labelling"] = 60,
+	},
+
 	vineZone = {
 		{
 			points = {
@@ -202,6 +209,10 @@ return {
 
 	fill = {
 		duration = 1, -- in seconds
+		animation = {
+			dict = 'random@shop_tattoo',
+			clip = '_idle_a'
+		},
 		job = {
 			active = false,
 			name = "vineyard",
@@ -211,43 +222,44 @@ return {
 			barrel = {
 				model = "wine_barrel",
 				locations = {
-					{spawn = vec4(-1908.88, 2091.72, 139.39, 192.83), player = vec4(-1908.63, 2090.55, 139.39, 8.69)},
-					{spawn = vec4(-1904.6711, 2093.0754, 139.35, 276.9268), player = vec4(-1904.48, 2091.83, 139.39, 14.29)},
-					{spawn = vec4(-1900.4412, 2093.7637, 139.35, 276.9268), player = vec4(-1900.26, 2092.35, 139.39, 10.77)},
-					{spawn = vec4(-1895.9293, 2094.2668, 139.35, 276.9268), player = vec4(-1895.86, 2092.83, 139.39, 4.28)}
+					["filler1"] = {spawn = vec4(-1908.88, 2091.72, 139.39, 276.9268), player = vec4(-1908.63, 2090.55, 139.39, 8.69)},
+					["filler2"] = {spawn = vec4(-1904.6711, 2093.0754, 139.35, 276.9268), player = vec4(-1904.48, 2091.83, 139.39, 14.29)},
+					["filler3"] = {spawn = vec4(-1900.4412, 2093.7637, 139.35, 276.9268), player = vec4(-1900.26, 2092.35, 139.39, 10.77)},
+					["filler4"] = {spawn = vec4(-1895.9293, 2094.2668, 139.35, 276.9268), player = vec4(-1895.86, 2092.83, 139.39, 4.28)}
 				}
 			},
 			tap = {
 				model = "wine_tap",
-				locations = {
-					vec4(-1908.804, 2091.538, 139.138, 276.9268),
-					vec4(-1904.6102294921875, 2092.8798828125, 139.06491088867188, 276.9268),
-					vec4(-1900.4036865234375, 2093.5537109375, 139.05039978027344, 276.9268),
-					vec4(-1895.8695, 2094.065, 139.053, 276.9268)
-				}
+				offset = vec3(0.235, 0.0, -0.8),
 			}
 		},
 		types = {
 			{
 				required = {
-					{itemName = "white_wine_juice", count = 2, remove = true},
-					{itemName = "empty_wine_bottle_labeled", count = 5, remove = true},
+					{name = "white_wine_juice", count = 1, remove = true},
+					{name = "empty_wine_bottle_labeled", count = 2, remove = true},
 				},
-				add = {itemName = "white_wine_bottle", count = 5},
+				add = {
+					{name = "white_wine_bottle", count = 2}
+				}
 			},
 			{
 				required = {
-					{itemName = "red_wine_juice", count = 2, remove = true},
-					{itemName = "empty_wine_bottle_labeled", count = 5, remove = true},
+					{name = "red_wine_juice", count = 1, remove = true},
+					{name = "empty_wine_bottle_labeled", count = 2, remove = true},
 				},
-				add = {itemName = "red_wine_bottle", count = 5},
+				add = {
+					{name = "red_wine_bottle", count = 2}
+				}
 			},
 			{
 				required = {
-					{itemName = "rose_wine_juice", count = 2, remove = true},
-					{itemName = "empty_wine_bottle_labeled", count = 5, remove = true},
+					{name = "rose_wine_juice", count = 1, remove = true},
+					{name = "empty_wine_bottle_labeled", count = 2, remove = true},
 				},
-				add = {itemName = "rose_wine_bottle", count = 5},
+				add = {
+					{name = "rose_wine_bottle", count = 2}
+				}
 			}
 		}
 	},

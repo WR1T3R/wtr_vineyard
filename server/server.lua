@@ -1,12 +1,14 @@
 local harvested = {}
 local stepped = {}
 local prepared = {}
-local filled = {}
 local labeled = {}
 local machineData = {}
 
 local QBCore = exports["qb-core"]:GetCoreObject()
 local Config = require("shared.shared")
+
+local ox_inventory = exports.ox_inventory
+local occupiedStations = {}
 
 local function isItemAllowlisted(id, name)
 	for k, v in pairs(Config.standaloneStore[id].items) do
@@ -109,6 +111,45 @@ lib.callback.register("wtr_vineyard:server:sellAutomatic", function(source, item
 	end
 end)
 
+lib.callback.register("wtr_vineyard:server:proceedFilling", function(source, id, amountPreload, data, tapCoords)
+	if not source then return end
+	if not id then return end
+	if not Config.fill.props.barrel.locations[id] then return end
+	if not amountPreload then return end
+	if not data then return end
+	if not tapCoords then return end
+
+	local src = source
+
+	if occupiedStations?.filled?[id] then 
+		Writer.Notify(src, "Cette station de remplissage est déjà occupée", "error")
+		return 
+	end
+
+	occupiedStations.filled = occupiedStations.filled or {}
+	occupiedStations.filled[id] = true
+	local passed = lib.callback.await("wtr_vineyard:client:proceedFilling", src, id, amountPreload, data, tapCoords)
+	if not passed then occupiedStations.filled[id] = nil return end
+
+	local canPass, denyTable = Writer.CanCraft(src, data.required, amountPreload)
+	if not canPass then 
+		Writer.Notify("Vous n'avez pas les items requis pour faire cela", "error")
+		occupiedStations.filled[id] = nil
+		return 
+	end
+
+	for k, v in pairs(data.required) do
+		ox_inventory:RemoveItem(src, v.name, v.count * amountPreload)
+	end
+
+	for k, v in pairs(data.add) do
+		ox_inventory:AddItem(src, v.name, v.count * amountPreload)
+	end
+
+	occupiedStations.filled[id] = nil
+	return true
+end)
+
 lib.callback.register("wtr_vineyard:server:setupItems", function(source, func, item, amount, meta, slot)
 	local src = source
 
@@ -145,20 +186,6 @@ lib.callback.register("wtr_vineyard:server:setPrepared", function(source, id, bo
 	local newId = tostring(id)
 
 	prepared[newId] = bool
-end)
-
-lib.callback.register("wtr_vineyard:server:isFilled", function(source, id)
-	local src = source
-	local newId = tostring(id)
-
-	return filled[newId]
-end)
-
-lib.callback.register("wtr_vineyard:server:setFilled", function(source, id, bool)
-	local src = source
-	local newId = tostring(id)
-
-	filled[newId] = bool
 end)
 
 lib.callback.register("wtr_vineyard:server:isLabeled", function(source, id)
