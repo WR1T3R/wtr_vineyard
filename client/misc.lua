@@ -1,21 +1,27 @@
 local Config = require("shared.shared")
 local Utils = require("client.utils")
 
-local amountPreLoad = 1
+local amountPreload = 1
 
-local dataAmount = {
-	["fill"] = 20,
-	["step"] = 20,
-	["prepare"] = 60,
-	["labelling"] = 60,
-}
 exports("setAmountPreload", function(amount)
-	amountPreLoad = amount
+	amountPreload = amount
+	SetResourceKvpInt("wtr_vineyard:amountPreload", amountPreload)
 end)
 
-exports("getAmountPreload", function(_type)
-	return amountPreLoad >= dataAmount[_type] and dataAmount[_type] or amountPreLoad
-end)
+local function getAmountPreload(_type)
+	return amountPreload >= Config.maxPredefinedAmount[_type] and Config.maxPredefinedAmount[_type] or amountPreload
+end
+exports("getAmountPreload", getAmountPreload)
+
+local function inputPredefinedAmount(_type)
+	local input = lib.inputDialog('Définir', {
+		{type = 'slider', label = 'Montant pré-défini', description = '', required = true, min = 1, max = Config.maxPredefinedAmount[_type], default = 1},
+	})
+	if not input or not input[1] then return false, nil end
+
+	return true, input[1]
+end
+exports("predefinedAmount", inputPredefinedAmount)
 
 ---@param items table table which contains all items needed
 local function canCraft(items)
@@ -46,20 +52,21 @@ end
 CreateThread(function()
 	while not LocalPlayer.state.isLoggedIn do Wait(5000) end
 
+	local kvp = GetResourceKvpInt("wtr_vineyard:amountPreload")
+	amountPreload = kvp ~= 0 and kvp or 1
+
 	for k, v in pairs(Config.vineZone) do
 		local poly = lib.zones.poly({
 			points = v.points,
 			thickness = v.thickness,
 			debug = Config.debug,
 			onEnter = function()
-				exports.wtr_vineyard:InitFill()
 				exports.wtr_vineyard:InitPrepare()
 				exports.wtr_vineyard:InitLabeling()
 				exports.wtr_vineyard:InitShop()
 				exports.wtr_vineyard:InitStep()
 			end,
 			onExit = function()
-				exports.wtr_vineyard:DestroyFill()
 				exports.wtr_vineyard:DestroyPrepare()
 				exports.wtr_vineyard:DestroyLabeling()
 				exports.wtr_vineyard:DestroyShop()

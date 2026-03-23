@@ -22,7 +22,7 @@ end
 
 lib.callback.register("wtr_vineyard:server:initHooks", function(source, id)
 	for k,v in pairs(Config.standaloneStore) do
-		exports.ox_inventory:registerHook('swapItems', function(payload)
+		ox_inventory:registerHook('swapItems', function(payload)
 			if payload.toInventory == id then
 				if payload.fromSlot then
 					local isAllow = isItemAllowlisted(k, payload.fromSlot.name, v)
@@ -41,7 +41,7 @@ end)
 
 lib.callback.register("wtr_vineyard:server:getInventoryItems", function(source, id)
 	local src = source
-	local items = exports.ox_inventory:GetInventoryItems(id)
+	local items = ox_inventory:GetInventoryItems(id)
 
 	return items
 end)
@@ -49,11 +49,11 @@ end)
 lib.callback.register("wtr_vineyard:server:canBoughtStandaloneItems", function(source, id, item, amount, price)
 	local src = source
 
-	if exports.ox_inventory:CanCarryItem(src, item, amount) then
-		if exports.ox_inventory:GetItemCount(src, "money") >= (amount * price) then
-			exports.ox_inventory:AddItem(src, item, amount)
-			exports.ox_inventory:RemoveItem(id, item, amount)
-			exports.ox_inventory:RemoveItem(src, "money", amount * price)
+	if ox_inventory:CanCarryItem(src, item, amount) then
+		if ox_inventory:GetItemCount(src, "money") >= (amount * price) then
+			ox_inventory:AddItem(src, item, amount)
+			ox_inventory:RemoveItem(id, item, amount)
+			ox_inventory:RemoveItem(src, "money", amount * price)
 			exports['Renewed-Banking']:addAccountMoney("vineyard", amount * price)
 		else
 			TriggerClientEvent("ox_lib:notify", src, {description = "Vous n'avez pas les fonds nécessaires (Argent comptant)", type = "error"})
@@ -71,13 +71,13 @@ end)
 
 lib.callback.register("wtr_vineyard:server:collectAutomatic", function(source, item, amount)
 	local src = source
-	if exports.ox_inventory:CanCarryItem(src, tostring(item), tonumber(amount)) then
+	if ox_inventory:CanCarryItem(src, tostring(item), tonumber(amount)) then
 		if machineData.juices[tostring(item)] then
 			if machineData.juices[tostring(item)] - amount == 0 then
-				exports.ox_inventory:AddItem(src, item, amount)
+				ox_inventory:AddItem(src, item, amount)
 				machineData.juices[tostring(item)] = nil
 			else
-				exports.ox_inventory:AddItem(src, item, amount)
+				ox_inventory:AddItem(src, item, amount)
 				machineData.juices[tostring(item)] -= amount
 			end
 		end
@@ -92,11 +92,11 @@ lib.callback.register("wtr_vineyard:server:sellAutomatic", function(source, item
 	local companyAmount = exports['Renewed-Banking']:getAccountMoney("vineyard")
 
 	if companyAmount >= (amount * price) then
-		exports.ox_inventory:RemoveItem(src, item, amount)
-		exports.ox_inventory:AddItem(src, "money", (amount * price))
+		ox_inventory:RemoveItem(src, item, amount)
+		ox_inventory:AddItem(src, "money", (amount * price))
 		exports['Renewed-Banking']:removeAccountMoney("vineyard", amount * price)
 
-		if machineData.process and machineData.process[tostring(item)] then 
+		if machineData.process and machineData.process[tostring(item)] then
 			machineData.process[tostring(item)] += amount
 		else
 			if machineData.process then
@@ -111,29 +111,29 @@ lib.callback.register("wtr_vineyard:server:sellAutomatic", function(source, item
 	end
 end)
 
-lib.callback.register("wtr_vineyard:server:proceedFilling", function(source, id, amountPreload, data, tapCoords)
-	if not source then return end
-	if not id then return end
-	if not Config.fill.props.barrel.locations[id] then return end
-	if not amountPreload then return end
-	if not data then return end
-	if not tapCoords then return end
+lib.callback.register("wtr_vineyard:server:proceedFilling", function(source, id, amountPreload, data)
+	if not source then return false end
+	if not id then return false end
+	if not Config.fill.props.barrel.locations[id] then return false end
+	if not amountPreload then return false end
+	if not data then return false end
 
 	local src = source
+
+	occupiedStations.filled = occupiedStations.filled or {}
 
 	if occupiedStations?.filled?[id] then 
 		Writer.Notify(src, "Cette station de remplissage est déjà occupée", "error")
 		return 
 	end
 
-	occupiedStations.filled = occupiedStations.filled or {}
 	occupiedStations.filled[id] = true
-	local passed = lib.callback.await("wtr_vineyard:client:proceedFilling", src, id, amountPreload, data, tapCoords)
-	if not passed then occupiedStations.filled[id] = nil return end
+	local passed = lib.callback.await("wtr_vineyard:client:proceedFilling", src, id, amountPreload, data)
+	if not passed then occupiedStations.filled[id] = nil return false end
 
 	local canPass, denyTable = Writer.CanCraft(src, data.required, amountPreload)
 	if not canPass then 
-		Writer.Notify("Vous n'avez pas les items requis pour faire cela", "error")
+		Writer.Notify(src, "Vous n'avez pas les items requis pour faire cela", "error")
 		occupiedStations.filled[id] = nil
 		return 
 	end
@@ -154,9 +154,9 @@ lib.callback.register("wtr_vineyard:server:setupItems", function(source, func, i
 	local src = source
 
 	if func == "give" then
-		exports.ox_inventory:AddItem(src, item, amount, meta, slot)
+		ox_inventory:AddItem(src, item, amount, meta, slot)
 	elseif func == "remove" then
-		exports.ox_inventory:RemoveItem(src, item, amount, meta, slot)
+		ox_inventory:RemoveItem(src, item, amount, meta, slot)
 	end
 end)
 
@@ -203,7 +203,7 @@ lib.callback.register("wtr_vineyard:server:setLabeled", function(source, id, boo
 end)
 
 lib.callback.register("wtr_vineyard:server:registerShop", function(source, id)
-	local shopId = exports.ox_inventory:RegisterShop(('wtr_vineyard:shop:%d'):format(id), {
+	local shopId = ox_inventory:RegisterShop(('wtr_vineyard:shop:%d'):format(id), {
         name = Config.shop[id].label,
         inventory = Config.shop[id].items,
         groups = Config.shop[id].job.active and {[Config.shop[id].job.name] = Config.shop[id].job.grade} or nil,
@@ -258,7 +258,7 @@ lib.callback.register("wtr_vineyard:server:setHarvested", function(source, name,
 end)
 
 lib.callback.register("wtr_vineyard:server:registerStash", function(source, id, label, slots, weight, owner)
-	exports.ox_inventory:RegisterStash(id, label, slots, weight, owner)
+	ox_inventory:RegisterStash(id, label, slots, weight, owner)
 end)
 
 CreateThread(function()
@@ -327,7 +327,7 @@ lib.callback.register("wtr_vineyard:server:drink", function(source, data)
 	player.PlayerData.metadata["thirst"] += data.drink.status.thirst
 	player.Functions.SetMetaData("thirst", player.PlayerData.metadata["thirst"])
 
-	exports.ox_inventory:RemoveItem(src, data.itemName, 1)
+	ox_inventory:RemoveItem(src, data.itemName, 1)
 	TriggerClientEvent('hud:client:UpdateNeeds', src, player.PlayerData.metadata["hunger"], player.PlayerData.metadata["thirst"])
 end)
 
@@ -343,14 +343,13 @@ for k, v in pairs(Config.consumables.glass) do
 		local src = source
 		local player = QBCore.Functions.GetPlayer(src)
 
-		lib.callback.await("wtr_vineyard:client:drinkGlass", src, v)
+		local passed = lib.callback.await("wtr_vineyard:client:drinkGlass", src, v)
+		if not passed then return end
 
-		player.PlayerData.metadata["thirst"] += v.drink.status.thirst
-		player.Functions.SetMetaData("thirst", player.PlayerData.metadata["thirst"])
+		Writer.UpdateStatus(src, "add", "thirst", v.drink.status.thirst)
 
-		exports.ox_inventory:AddItem(src, v.add.itemName, v.add.count)
-		exports.ox_inventory:RemoveItem(src, v.itemName, 1)
-		TriggerClientEvent('hud:client:UpdateNeeds', src, player.PlayerData.metadata["hunger"], player.PlayerData.metadata["thirst"])
+		ox_inventory:AddItem(src, v.add.itemName, v.add.count)
+		ox_inventory:RemoveItem(src, v.itemName, 1)
 	end)
 end
 

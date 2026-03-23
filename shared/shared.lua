@@ -2,7 +2,7 @@ return {
 	debugPoly = false,
 
 	maxPredefinedAmount = {
-		["fill"] = 20,
+		["fill"] = 24,
 		["step"] = 20,
 		["prepare"] = 60,
 		["labelling"] = 60,
@@ -236,11 +236,11 @@ return {
 		types = {
 			{
 				required = {
-					{name = "white_wine_juice", count = 1, remove = true},
-					{name = "empty_wine_bottle_labeled", count = 2, remove = true},
+					--{name = "white_wine_juice", count = 1, remove = true},
+					{name = "empty_wine_bottle_labeled", count = 1, remove = true},
 				},
 				add = {
-					{name = "white_wine_bottle", count = 2}
+					{name = "white_wine_bottle", count = 1}
 				}
 			},
 			{
@@ -507,7 +507,7 @@ return {
 			job = {
 				active = true,
 				name = "vineyard",
-				grade = 4
+				grade = 2
 			},
 			stash = {
 				id = "standalone1",
@@ -532,7 +532,7 @@ return {
 		job = {
 			active = true,
 			name = "vineyard",
-			grade = 4
+			grade = 2
 		},
 		peds = {
 			model = "ig_bankman",
