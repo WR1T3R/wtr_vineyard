@@ -16,27 +16,27 @@ local function formatFillBottles(id, amountPreload)
 		[1] = vec3(0.27, -0.18, 0.0), -- corner left
 		[2] = vec3(0.16, -0.18, 0.0),
 		[3] = vec3(0.06, -0.18, 0.0),
-		[4] = vec3(-0.04, -0.18, 0.0),
-		[5] = vec3(-0.14, -0.18, 0.0),
-		[6] = vec3(-0.25, -0.18, 0.0),
+		[4] = vec3(-0.06, -0.18, 0.0),
+		[5] = vec3(-0.16, -0.18, 0.0),
+		[6] = vec3(-0.27, -0.18, 0.0),
 
-		[7] = vec3(0.25, -0.06, 0.0),
-		[8] = vec3(0.14, -0.06, 0.0),
-		[9] = vec3(0.04, -0.06, 0.0),
+		[7] = vec3(0.27, -0.06, 0.0),
+		[8] = vec3(0.16, -0.06, 0.0),
+		[9] = vec3(0.06, -0.06, 0.0),
 		[10] = vec3(-0.06, -0.06, 0.0), -- corner right
 		[11] = vec3(-0.16, -0.06, 0.0),
 		[12] = vec3(-0.27, -0.06, 0.0),
 
-		[13] = vec3(0.27, 0.04, 0.0), -- corner bottom left
-		[14] = vec3(0.16, 0.04, 0.0),
-		[15] = vec3(0.06, 0.04, 0.0),
-		[16] = vec3(-0.04, 0.04, 0.0),
-		[17] = vec3(-0.14, 0.04, 0.0),
-		[18] = vec3(-0.25, 0.04, 0.0),
+		[13] = vec3(0.27, 0.06, 0.0), -- corner bottom left
+		[14] = vec3(0.16, 0.06, 0.0),
+		[15] = vec3(0.06, 0.06, 0.0),
+		[16] = vec3(-0.06, 0.06, 0.0),
+		[17] = vec3(-0.16, 0.06, 0.0),
+		[18] = vec3(-0.27, 0.06, 0.0),
 
-		[19] = vec3(0.25, 0.18, 0.0),
-		[20] = vec3(0.14, 0.18, 0.0),
-		[21] = vec3(0.04, 0.18, 0.0),
+		[19] = vec3(0.27, 0.18, 0.0),
+		[20] = vec3(0.16, 0.18, 0.0),
+		[21] = vec3(0.06, 0.18, 0.0),
 		[22] = vec3(-0.06, 0.18, 0.0), -- corner bottom right
 		[23] = vec3(-0.16, 0.18, 0.0),
 		[24] = vec3(-0.27, 0.18, 0.0)
@@ -121,7 +121,7 @@ local function initFillMenu(id)
 	options[#options + 1] = {
 		title = ("Multiplicateur: **%d**"):format(amountPreload),
 		icon = "fas fa-circle-info",
-		description = ("*Le multiplicateur permet de faire le remplissage de plusieurs bouteilles à la fois au lieu de ré-ouvrir le menu pour recommencer l'action*"):format(Config.maxPredefinedAmount["fill"] or 1),
+		description = "*Le multiplicateur permet de faire le remplissage de plusieurs bouteilles à la fois au lieu de ré-ouvrir le menu pour recommencer l'action*",
 		arrow = true,
 		onSelect = function()
 			local predefinedAmount, amount = exports.wtr_vineyard:predefinedAmount("fill")
@@ -143,7 +143,7 @@ local function initFillMenu(id)
 
 		options[#options + 1] = {
 			title = Writer.GetLabelDescription(fill.add, amountPreload, ", ", true),
-			description = Writer.GetLabelDescription(fill.required, amountPreload, " \n", false).. (" \n\n**Temps de remplissage**: %d seconde%s"):format(animDuration, animDuration > 1 and "s" or ""),
+			description = ("%s%s"):format(Writer.GetLabelDescription(fill.required, amountPreload, " \n", false), (" \n\n**Temps de remplissage**: %d seconde%s"):format(animDuration, animDuration > 1 and "s" or "")),
 			icon = #fill.add > 1 and "fas fa-boxes" or Writer.GetImage(fill.add[1].name),
 			arrow = canProceed,
 			disabled = not canProceed,

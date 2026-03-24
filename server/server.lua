@@ -1,7 +1,6 @@
 local harvested = {}
 local stepped = {}
 local prepared = {}
-local labeled = {}
 local machineData = {}
 
 local QBCore = exports["qb-core"]:GetCoreObject()
@@ -139,14 +138,61 @@ lib.callback.register("wtr_vineyard:server:proceedFilling", function(source, id,
 	end
 
 	for k, v in pairs(data.required) do
-		ox_inventory:RemoveItem(src, v.name, v.count * amountPreload)
+		if v.remove then
+			ox_inventory:RemoveItem(src, v.name, v.count * amountPreload)
+		end
 	end
 
 	for k, v in pairs(data.add) do
-		ox_inventory:AddItem(src, v.name, v.count * amountPreload)
+		if v.remove then
+			ox_inventory:AddItem(src, v.name, v.count * amountPreload)
+		end
 	end
 
 	occupiedStations.filled[id] = nil
+	return true
+end)
+
+lib.callback.register("wtr_vineyard:server:proceedLabeling", function(source, id, amountPreload, data)
+	if not source then return false end
+	if not id then return false end
+	if not Config.labeling.props.table.locations[id] then return false end
+	if not amountPreload then return false end
+	if not data then return false end
+
+	local src = source
+
+	occupiedStations.labeling = occupiedStations.labeling or {}
+
+	if occupiedStations?.labeling?[id] then 
+		Writer.Notify(src, "Cette station d'étiquettage est déjà occupée", "error")
+		return 
+	end
+
+	occupiedStations.labeling[id] = true
+	local passed = lib.callback.await("wtr_vineyard:client:proceedLabeling", src, id, amountPreload, data)
+	if not passed then occupiedStations.labeling[id] = nil return false end
+
+	local canPass, denyTable = Writer.CanCraft(src, data.required, amountPreload)
+	if not canPass then 
+		Writer.Notify(src, "Vous n'avez pas les items requis pour faire cela", "error")
+		occupiedStations.labeling[id] = nil
+		return 
+	end
+
+	for k, v in pairs(data.required) do
+		if v.remove then
+			ox_inventory:RemoveItem(src, v.name, v.count * amountPreload)
+		end
+	end
+
+	for k, v in pairs(data.add) do
+		if v.remove then
+			ox_inventory:AddItem(src, v.name, v.count * amountPreload)
+		end
+	end
+
+	occupiedStations.labeling[id] = nil
 	return true
 end)
 
@@ -186,20 +232,6 @@ lib.callback.register("wtr_vineyard:server:setPrepared", function(source, id, bo
 	local newId = tostring(id)
 
 	prepared[newId] = bool
-end)
-
-lib.callback.register("wtr_vineyard:server:isLabeled", function(source, id)
-	local src = source
-	local newId = tostring(id)
-
-	return labeled[newId]
-end)
-
-lib.callback.register("wtr_vineyard:server:setLabeled", function(source, id, bool)
-	local src = source
-	local newId = tostring(id)
-
-	labeled[newId] = bool
 end)
 
 lib.callback.register("wtr_vineyard:server:registerShop", function(source, id)

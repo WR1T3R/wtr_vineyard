@@ -1,108 +1,78 @@
 local Config = require("shared.shared")
 local Utils = require("client.utils")
 
-local propsLoaded = {}
+local pointsLoaded = {}
 
-local function canCraft(items)
-	local itemsIn = 0
+local function proceedLabeling(id, amountPreload, data)
+	local label = Config.labeling.props.table.locations[id]
+	local coords = label.player
 
-	for i = 1, #items do
-		local count = exports.ox_inventory:GetItemCount(items[i].itemName)
+	SetEntityCoords(cache.ped, coords)
+	SetEntityHeading(cache.ped, coords.w)
 
-		if count >= (items[i].count * exports.wtr_vineyard:getAmountPreload("labelling")) then itemsIn += 1 end
-	end
+	local progress = Writer.SendProgress({
+		label = "Étiquetage en cours..",
+		duration = ((Config.labeling.duration * 1000) * amountPreload),
+		position = 'bottom',
+		useWhileDead = false,
+		canCancel = true,
+		disable = {
+			move = true,
+			car = true,
+			combat = true
+		},
+		anim = {
+			dict = 'mp_arresting',
+			clip = 'a_uncuff'
+		},
+		prop = {
+			model = "prop_wine_bot_01",
+			bone = 57005,
+			pos = vec3(0.005, 0.024, -0.031),
+			rot = vec3(-45.78, 22.05, -65.19),
+		}
+	}) 
 
-	return #items == itemsIn
+	return progress
 end
+lib.callback.register("wtr_vineyard:client:proceedLabeling", proceedLabeling)
 
-local function getRequiredLabel(items)
-	a = 0
-	label = ""
-
-	for _, v in pairs(items) do
-		label = string.format("%s%sx %s", label, (v.count * exports.wtr_vineyard:getAmountPreload("labelling")), exports.ox_inventory:Items(v.itemName).label)
-		if a ~= #items - 1 then label = ("%s\n"):format(label) end
-		a += 1
-	end
-
-	return label
-end
-
-local function initLabelingMenu(coords, id)
+local function initLabelingMenu(id)
 	local options = {}
-	local amountPreload = exports.wtr_vineyard:getAmountPreload("labelling")
+	local amountPreload = exports.wtr_vineyard:getAmountPreload("labeling")
 
 	options[#options + 1] = {
-		title = ("Montant pré-défini: %d"):format(amountPreload),
+		title = ("Multiplicateur: **%d**"):format(amountPreload),
 		icon = "fas fa-circle-info",
+		description = "*Le multiplicateur permet de faire le remplissage de plusieurs bouteilles à la fois au lieu de ré-ouvrir le menu pour recommencer l'action*",
 		arrow = true,
 		onSelect = function()
-			local input = lib.inputDialog('Définir', {
-				{type = 'slider', label = 'Montant pré-défini', description = '', required = true, min = 1, max = 60},
-			})
-			if not input or not input[1] then return end
+			local predefinedAmount, amount = exports.wtr_vineyard:predefinedAmount("labeling")
+			if not predefinedAmount then
+				initLabelingMenu(id)
+				return
+			end
 
-			exports.wtr_vineyard:setAmountPreload(input[1])
+			exports.wtr_vineyard:setAmountPreload(amount)
 			Wait(10)
-			lib.notify({title = "Notification", description = ("Montant pré-défini ajusté à %d"):format(input[1]), type = "success"})
-			initLabelingMenu(coords, id)
+			Writer.Notify(("Multiplicateur ajusté à %d"):format(amount), "success")
+			initLabelingMenu(id)
 		end
 	}
 	for i = 1, #Config.labeling.types do
-		local labelingInfo = Config.labeling.types
-		local itemCount = exports.ox_inventory:GetItemCount(labelingInfo[i].itemName)
-		local itemInfo = exports.ox_inventory:Items(labelingInfo[i].add.itemName)
+		local label = Config.labeling.types[i]
+		local canProceed = Writer.CanCraft(label.required, amountPreload)
 
 		options[#options + 1] = {
-			title = ("%dx %s"):format((labelingInfo[i].add.count * exports.wtr_vineyard:getAmountPreload("labelling")), itemInfo.label),
-			description = getRequiredLabel(labelingInfo[i].required),
-			icon = itemInfo.client.image,
-			arrow = canCraft(labelingInfo[i].required),
-			disabled = not canCraft(labelingInfo[i].required),
+			title = Writer.GetLabelDescription(label.add, amountPreload, ", ", true),
+			description = Writer.GetLabelDescription(label.required, amountPreload, ", ", false),
+			icon = #label.add > 1 and "fas fa-boxes" or Writer.GetImage(label.add[1].name),
+			arrow = canProceed,
+			disabled = not canProceed,
 			onSelect = function()
-				if canCraft(labelingInfo[i].required) then
-					local isLabeled = lib.callback.await("wtr_vineyard:server:isLabeled", false, id)
-					if isLabeled then lib.notify({description = "Cette station est occupée", type = "error"}) return end
-
-					for k, v in pairs(labelingInfo[i].required) do
-						if v.remove then
-							lib.callback.await("wtr_vineyard:server:setupItems", false, "remove", v.itemName, (v.count * exports.wtr_vineyard:getAmountPreload("labelling")))
-						end
-					end
-
-					lib.callback.await("wtr_vineyard:server:setLabeled", false, id, true)
-					exports.ox_target:disableTargeting(true)
-
-					SetEntityCoords(cache.ped, coords)
-					SetEntityHeading(cache.ped, coords.w)
-
-					if lib.progressCircle({
-						label = "Étiquetage en cours..",
-						duration = ((Config.labeling.duration * 1000) * exports.wtr_vineyard:getAmountPreload("labelling")),
-						position = 'bottom',
-						useWhileDead = false,
-						canCancel = false,
-						disable = {
-							move = true,
-							car = true,
-							combat = true
-						},
-						anim = {
-							dict = 'mp_arresting',
-							clip = 'a_uncuff'
-						},
-						prop = {
-							model = "prop_wine_bot_01",
-							bone = 57005,
-							pos = vec3(0.005, 0.024, -0.031),
-							rot = vec3(-45.78, 22.05, -65.19),
-						}
-					}) 
-					then 
-						exports.ox_target:disableTargeting(false)
-						lib.callback.await("wtr_vineyard:server:setupItems", false, "give", labelingInfo[i].add.itemName, (labelingInfo[i].add.count * exports.wtr_vineyard:getAmountPreload("labelling")))
-						lib.callback.await("wtr_vineyard:server:setLabeled", false, id, nil)
-					end
+				local pass = lib.callback.await("wtr_vineyard:server:proceedLabeling", false, id, amountPreload, label)
+				if pass then 
+					Writer.Notify(("Vous avez étiquetté %d bouteille%s avec succès"):format(amountPreload, amountPreload > 1 and "s" or ""))
 				end
 			end
 		}
@@ -117,43 +87,68 @@ local function initLabelingMenu(coords, id)
 end
 
 function initLabeling()
-	for i = 1, #Config.labeling.props.table.locations do
-		local prop = Utils.createProp(Config.labeling.props.table.model, Config.labeling.props.table.locations[i].spawn, true)
-		propsLoaded[#propsLoaded + 1] = prop
-
-		exports.ox_target:addLocalEntity(prop, {
-			{
-				label = "Étiqueter",
-				icon = "fas fa-leaf",
-				groups = Config.labeling.job.active and {[Config.labeling.job.name] = Config.labeling.job.grade} or nil,
-				onSelect = function()
-					initLabelingMenu(Config.labeling.props.table.locations[i].player, i)
-				end,
-				distance = 2.0,
-			}
+	for k, v in pairs(Config.labeling.props.table.locations) do
+		local point = lib.points.new({
+			coords = v.spawn,
+			heading = v.spawn.w,
+			distance = 30,
+			model = nil,
+			box = nil
 		})
-	end
 
-	for i = 1, #Config.labeling.props.box.locations do
-		local prop = Utils.createProp(Config.labeling.props.box.model, Config.labeling.props.box.locations[i], false)
+		function point:onEnter()
+			if not self.model then
+				self.model = Utils.createProp("prop_paint_wpaper01", vec4(self.coords.x, self.coords.y, self.coords.z, self.heading), true)
 
-		propsLoaded[#propsLoaded + 1] = prop
+				local offset = GetOffsetFromEntityInWorldCoords(self.model, vec3(0.73, -0.3, 0.0))
+				self.box = Utils.createProp(Config.labeling.props.box.model, vec4(offset.x, offset.y, offset.z, self.heading), true)
+
+				exports.ox_target:addLocalEntity(self.model, {
+					{
+						label = "Étiqueter",
+						icon = "fas fa-leaf",
+						groups = Config.labeling.job.active and {[Config.labeling.job.name] = Config.labeling.job.grade} or nil,
+						onSelect = function()
+							initLabelingMenu(k)
+						end,
+						distance = 2.0,
+					}
+				})
+			end
+		end
+
+		function point:onExit()
+			if self.model then
+				if DoesEntityExist(self.model) then DeleteEntity(self.model) end
+				self.model = nil
+			end
+
+			if self.box then
+				if DoesEntityExist(self.box) then DeleteEntity(self.box) end
+				self.box = nil
+			end
+		end
+
+		pointsLoaded[#pointsLoaded + 1] = point
 	end
 end
-exports("InitLabeling", initLabeling)
 
-function destroyLabeling()
-	for k, v in pairs(propsLoaded) do
-		if DoesEntityExist(v) then DeleteEntity(v) end
-	end
-end
-exports("DestroyLabeling", destroyLabeling)
+CreateThread(function()
+	while not Writer.IsLoaded() do Wait(10) end
 
+	initLabeling()
+end)
 
 AddEventHandler("onResourceStop", function(resource)
-	if GetCurrentResourceName() == resource then
-		for k, v in pairs(propsLoaded) do
-			if DoesEntityExist(v) then DeleteEntity(v) end
+	if cache.resource == resource then
+		for k, v in pairs(pointsLoaded) do
+			if v.model then
+				if DoesEntityExist(v.model) then DeleteEntity(v.model) end
+			end
+
+			if v.box then
+				if DoesEntityExist(v.box) then DeleteEntity(v.box) end
+			end
 		end
 	end
 end)

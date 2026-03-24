@@ -32,7 +32,7 @@ end
 
 function Utils.createProp(object, coords, placeonground, network)
 	local model = joaat(object)
-	lib.requestModel(model)
+	lib.requestModel(model, 5000)
 
 	local props = CreateObject(model, coords.x, coords.y, coords.z, network or false, false, false)
 
@@ -44,12 +44,12 @@ function Utils.createProp(object, coords, placeonground, network)
 	end
 	FreezeEntityPosition(props, true)
 
+	SetModelAsNoLongerNeeded(model)
 	return props
 end
 
 function Utils.createEntity(model, coords)
 	local model = joaat(model)
-	local coords = coords
 
 	lib.requestModel(model, 5000)
 
@@ -61,6 +61,7 @@ function Utils.createEntity(model, coords)
 	SetBlockingOfNonTemporaryEvents(peds, true)
 	SetPedDefaultComponentVariation(peds)
 
+	SetModelAsNoLongerNeeded(model)
 	return peds
 end
 

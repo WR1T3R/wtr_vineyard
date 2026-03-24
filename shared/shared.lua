@@ -5,7 +5,7 @@ return {
 		["fill"] = 24,
 		["step"] = 20,
 		["prepare"] = 60,
-		["labelling"] = 60,
+		["labeling"] = 60,
 	},
 
 	vineZone = {
@@ -275,25 +275,20 @@ return {
 			table = {
 				model = "prop_table_04",
 				locations = {
-					{spawn = vec4(-1889.86, 2074.08, 140.01, 71.45), player = vec4(-1890.60, 2074.27, 140.01, 255.12)},
-					{spawn = vec4(-1897.04, 2079.83, 140.01, 226.89), player = vec4(-1896.46, 2079.30, 140.01, 50.03)},
-				}
-			},
-			box = {
-				model = "prop_paint_wpaper01",
-				locations = {
-					vec4(-1889.697, 2074.772, 140.812, 159.45),
-					vec4(-1897.485, 2079.334, 140.812, 315.14),
+					["labeling1"] = {spawn = vec4(-1889.86, 2074.08, 140.01, 71.45), player = vec4(-1890.60, 2074.27, 140.01, 255.12)},
+					["labeling2"] = {spawn = vec4(-1897.04, 2079.83, 140.01, 226.89), player = vec4(-1896.46, 2079.30, 140.01, 50.03)},
 				}
 			}
 		},
 		types = {
 			{
 				required = {
-					{itemName = "empty_wine_bottle", count = 1, remove = true},
-					{itemName = "wine_label", count = 1, remove = true},
+					{name = "empty_wine_bottle", count = 1, remove = true},
+					{name = "wine_label", count = 1, remove = true},
 				},
-				add = {itemName = "empty_wine_bottle_labeled", count = 1},
+				add = {
+					{name = "empty_wine_bottle_labeled", count = 1},
+				}
 			}
 		}
 	},
@@ -343,45 +338,6 @@ return {
 			weight = 10000000,
 			owner = false,
 		},
-		--[[{
-			zone = {coords = vec3(-1868.75, 2056.0, 141.0), size = vec3(1.75, 2.5, 4.0), rotation = 0.0},
-			job = {
-				active = true,
-				name = "vineyard",
-				grade = 0
-			},
-			label = "Frigidaire",
-			id = "fridge2",
-			slots = 50,
-			weight = 1000000,
-			owner = false,
-		},
-		{
-			zone = {coords = vec3(-1881.1, 2069.6, 140.5), size = vec3(2.1, 0.7, 0.8), rotation = 340.0},
-			job = {
-				active = true,
-				name = "vineyard",
-				grade = 0
-			},
-			label = "Frigidaire",
-			id = "fridge3",
-			slots = 50,
-			weight = 1000000,
-			owner = false,
-		},
-		{
-			zone = {coords = vec3(-1873.8, 2052.1, 141.4), size = vec3(3, 1, 2.5), rotation = 340.0},
-			job = {
-				active = true,
-				name = "vineyard",
-				grade = 0
-			},
-			label = "Casier personnel",
-			id = "personalLocker",
-			slots = 20,
-			weight = 1000000,
-			owner = true,
-		},--]]
 	},
 
 	consumables = {
