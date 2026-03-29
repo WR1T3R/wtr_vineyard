@@ -1,5 +1,4 @@
 local harvested = {}
-local stepped = {}
 
 local QBCore = exports["qb-core"]:GetCoreObject()
 local Config = require("shared.shared")
@@ -185,6 +184,47 @@ lib.callback.register("wtr_vineyard:server:proceedPrepare", function(source, id,
 	return true
 end)
 
+lib.callback.register("wtr_vineyard:server:proceedStep", function(source, id, amountPreload, data)
+	if not source then return false end
+	if not id then return false end
+	if not Config.step.props.locations[id] then return false end
+	if not amountPreload then return false end
+	if not data then return false end
+
+	local src = source
+
+	occupiedStations.step = occupiedStations.step or {}
+
+	if occupiedStations?.step?[id] then 
+		Writer.Notify(src, "Cette station de presse est déjà occupée", "error")
+		return 
+	end
+
+	occupiedStations.step[id] = true
+	local passed = lib.callback.await("wtr_vineyard:client:proceedStep", src, id, amountPreload, data)
+	if not passed then occupiedStations.step[id] = nil return false end
+
+	local canPass, denyTable = Writer.CanCraft(src, data.required, amountPreload)
+	if not canPass then 
+		Writer.Notify(src, "Vous n'avez pas les items requis pour faire cela", "error")
+		occupiedStations.step[id] = nil
+		return 
+	end
+
+	for k, v in pairs(data.required) do
+		if v.remove then
+			ox_inventory:RemoveItem(src, v.name, v.count * amountPreload)
+		end
+	end
+
+	for k, v in pairs(data.add) do
+		ox_inventory:AddItem(src, v.name, v.count * amountPreload)
+	end
+
+	occupiedStations.step[id] = nil
+	return true
+end)
+
 lib.callback.register("wtr_vineyard:server:setupItems", function(source, func, item, amount, meta, slot)
 	local src = source
 
@@ -193,20 +233,6 @@ lib.callback.register("wtr_vineyard:server:setupItems", function(source, func, i
 	elseif func == "remove" then
 		ox_inventory:RemoveItem(src, item, amount, meta, slot)
 	end
-end)
-
-lib.callback.register("wtr_vineyard:server:isStepped", function(source, id)
-	local src = source
-	local newId = tostring(id)
-
-	return stepped[newId]
-end)
-
-lib.callback.register("wtr_vineyard:server:setStepped", function(source, id, bool)
-	local src = source
-	local newId = tostring(id)
-
-	stepped[newId] = bool
 end)
 
 lib.callback.register("wtr_vineyard:server:registerShop", function(source, id)

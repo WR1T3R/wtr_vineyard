@@ -1,116 +1,102 @@
 local Config = require("shared.shared")
 local Utils = require("client.utils")
 
-local propsLoaded = {}
+local pointsLoaded = {}
 
-local function canCraft(items)
-	local itemsIn = 0
+local function proceedStep(id, amountPreload, data)
+	local step = Config.step.props.locations[id]
+	local coords = step.spawn
 
-	for i = 1, #items do
-		local count = exports.ox_inventory:GetItemCount(items[i].itemName)
+	local lastData = {
+		coords = GetEntityCoords(cache.ped),
+		heading = GetEntityHeading(cache.ped),
+	}
 
-		if count >= (items[i].count * exports.wtr_vineyard:getAmountPreload("step")) then itemsIn += 1 end
-	end
+	local prop = Utils.createProp(data.propName, vec4(coords.x, coords.y, coords.z - 0.7, coords.w), false, true)
+	while not DoesEntityExist(prop) do Wait(10) end
 
-	return #items == itemsIn
+	lib.requestNamedPtfxAsset("core")
+	UseParticleFxAssetNextCall("core")
+	local particles = StartParticleFxLoopedAtCoord(data.particles, coords.x, coords.y, coords.z - 0.7, 0.0, 0.0, 0.0, 2.0, 0.01, false, false, false, false)
+
+	SetEntityCoords(cache.ped, vec3(coords.x, coords.y, coords.z - 1.0))
+	SetEntityHeading(cache.ped, coords.w - 90)
+
+	local duration = (Config.step.duration * amountPreload)
+	CreateThread(function()
+		for i = 1, duration do		
+			FreezeEntityPosition(cache.ped, false)
+			ClearPedTasks(cache.ped)
+
+			FreezeEntityPosition(cache.ped, true)
+			TaskStartScenarioInPlace(cache.ped, 'WORLD_HUMAN_JOG_STANDING', -1, true)
+			Wait(1000)
+		end
+	end)
+
+	local progress = Writer.SendProgress({
+		duration = duration * 1000,
+		label = "Pressage en cours..",
+		position = 'bottom',
+		useWhileDead = false,
+		canCancel = true,
+		disable = {
+			move = true,
+			combat = true,
+			mouse = false,
+			car = true
+		},
+	})
+
+	FreezeEntityPosition(cache.ped, false)
+	ClearPedTasksImmediately(cache.ped)
+	DeleteEntity(prop)
+	StopParticleFxLooped(particles, 0)
+	SetEntityCoords(cache.ped, lastData.coords.x, lastData.coords.y, lastData.coords.z - 1.0)
+	SetEntityHeading(cache.ped, lastData.heading)
+
+	return progress
 end
+lib.callback.register("wtr_vineyard:client:proceedStep", proceedStep)
 
-local function getRequiredLabel(items)
-	a = 0
-	label = ""
-
-	for _, v in pairs(items) do
-		label = string.format("%s%sx %s", label, (v.count * exports.wtr_vineyard:getAmountPreload("step")), exports.ox_inventory:Items(v.itemName).label)
-		if a ~= #items - 1 then label = ("%s\n"):format(label) end
-		a += 1
-	end
-
-	return label
-end
-exports.ox_target:disableTargeting(false)
-local function initStepMenu(coords, id)
+local function initStepMenu(id)
 	local options = {}
 	local amountPreload = exports.wtr_vineyard:getAmountPreload("step")
 
 	options[#options + 1] = {
-		title = ("Montant pré-défini: %d"):format(amountPreload),
+		title = ("Multiplicateur: **%d**"):format(amountPreload),
 		icon = "fas fa-circle-info",
+		description = "*Le multiplicateur permet de faire la presse de plusieurs raisins à la fois au lieu de ré-ouvrir le menu pour recommencer l'action*",
 		arrow = true,
 		onSelect = function()
-			local input = lib.inputDialog('Définir', {
-				{type = 'slider', label = 'Montant pré-défini', description = '', required = true, min = 1, max = 20},
-			})
-			if not input or not input[1] then return end
+			local predefinedAmount, amount = exports.wtr_vineyard:predefinedAmount("step")
+			if not predefinedAmount then
+				initStepMenu(id)
+				return
+			end
 
-			exports.wtr_vineyard:setAmountPreload(input[1])
+			exports.wtr_vineyard:setAmountPreload(amount)
 			Wait(10)
-			lib.notify({title = "Notification", description = ("Montant pré-défini ajusté à %d"):format(input[1]), type = "success"})
-			initStepMenu(coords, id)
+			Writer.Notify(("Multiplicateur ajusté à %d"):format(amount), "success")
+			initStepMenu(id)
 		end
 	}
+
 	for i = 1, #Config.step.types do
-		local itemCount = exports.ox_inventory:GetItemCount(Config.step.types[i].itemName)
-		local itemInfo = exports.ox_inventory:Items(Config.step.types[i].add.itemName)
+		local step = Config.step.types[i]
+		local canProceed = Writer.CanCraft(step.required, amountPreload)
+		local animDuration = (amountPreload * Config.step.duration)
 
 		options[#options + 1] = {
-			title = ("%dx %s"):format((Config.step.types[i].add.count * exports.wtr_vineyard:getAmountPreload("step")), itemInfo.label),
-			description = getRequiredLabel(Config.step.types[i].required),
-			icon = itemInfo.client.image,
-			arrow = canCraft(Config.step.types[i].required),
-			disabled = not canCraft(Config.step.types[i].required),
+			title = Writer.GetLabelDescription(step.add, amountPreload, ", ", true),
+			description = ("%s%s"):format(Writer.GetLabelDescription(step.required, amountPreload, " \n", false), (" \n\n**Temps de remplissage**: %d seconde%s"):format(animDuration, animDuration > 1 and "s" or "")),
+			icon = #step.add > 1 and "fas fa-boxes" or Writer.GetImage(step.add[1].name),
+			arrow = canProceed,
+			disabled = not canProceed,
 			onSelect = function()
-				if canCraft(Config.step.types[i].required) then
-
-					local isStepped = lib.callback.await("wtr_vineyard:server:isStepped", false, id)
-					if isStepped then lib.notify({description = "Cette station est occupée", type = "error"}) return end
-
-					exports.ox_target:disableTargeting(true)
-					lib.callback.await("wtr_vineyard:server:setStepped", false, id, true)
-					local entityData = {
-						coords = GetEntityCoords(cache.ped),
-						heading = GetEntityHeading(cache.ped),
-					}
-
-					for k, v in pairs(Config.step.types[i].required) do
-						if v.remove then
-							lib.callback.await("wtr_vineyard:server:setupItems", false, "remove", v.itemName, (v.count * exports.wtr_vineyard:getAmountPreload("step")))
-						end
-					end
-
-					local propsName = Utils.createProp(Config.step.types[i].propName, vec4(coords.x, coords.y, coords.z - 0.7, coords.w), false, true)
-					while not DoesEntityExist(propsName) do Wait(10) end
-
-					lib.requestNamedPtfxAsset("core")
-					UseParticleFxAssetNextCall("core")
-					local particles = StartParticleFxLoopedAtCoord(Config.step.types[i].particles, coords.x, coords.y, coords.z - 0.7, 0.0, 0.0, 0.0, 2.0, 0.01, false, false, false, false)
-
-					SetEntityCoords(cache.ped, vec3(coords.x, coords.y, coords.z - 1.0))
-					SetEntityHeading(cache.ped, coords.w - 90)
-
-					local amountToCheck = Config.step.types[i].add.count
-					for i = 1, (Config.step.duration * (Config.step.types[i].add.count * exports.wtr_vineyard:getAmountPreload("step"))) do
-						local progress = math.floor((i * 100) / (Config.step.duration * (amountToCheck * exports.wtr_vineyard:getAmountPreload("step"))))
-						
-						lib.showTextUI(("**Vignoble**  \n*Pressage en cours:* **%s%%**"):format(tostring(progress)), {position = "left-center", icon = "fas fa-leaf", iconColor = "#FFFFFF"})
-						FreezeEntityPosition(cache.ped, false)
-						ClearPedTasks(cache.ped)
-
-						FreezeEntityPosition(cache.ped, true)
-						TaskStartScenarioInPlace(cache.ped, 'WORLD_HUMAN_JOG_STANDING', -1, true)
-						Wait(1000)
-					end
-
-					lib.hideTextUI()
-					FreezeEntityPosition(cache.ped, false)
-					ClearPedTasksImmediately(cache.ped)
-					DeleteEntity(propsName)
-					StopParticleFxLooped(particles, 0)
-					SetEntityCoords(cache.ped, entityData.coords.x, entityData.coords.y, entityData.coords.z - 1.0)
-					SetEntityHeading(cache.ped, entityData.heading)
-
-					lib.callback.await("wtr_vineyard:server:setupItems", false, "give", Config.step.types[i].add.itemName, (Config.step.types[i].add.count * exports.wtr_vineyard:getAmountPreload("step")))
-					lib.callback.await("wtr_vineyard:server:setStepped", false, id, nil)
-					exports.ox_target:disableTargeting(false)
+				local pass = lib.callback.await("wtr_vineyard:server:proceedStep", false, id, amountPreload, step)
+				if pass then
+					Writer.Notify(("Vous avez pressé %d raisin%s avec succès"):format(amountPreload, amountPreload > 1 and "s" or ""))
 				end
 			end
 		}
@@ -124,37 +110,50 @@ local function initStepMenu(coords, id)
 	lib.showContext("wtr_vineyard:stepMenu")
 end
 
-function initStep()
-	for i = 1, #Config.step.props.locations do
-		local prop = Utils.createProp(Config.step.props.model, Config.step.props.locations[i], true)
-		propsLoaded[#propsLoaded + 1] = prop
+CreateThread(function()
+	while not Writer.IsLoaded() do Wait(10) end
 
-		exports.ox_target:addLocalEntity(prop, {
-			{
-				label = "Pressage de raisins",
-				groups = Config.step.job.active and {[Config.step.job.name] = Config.step.job.grade} or nil,
-				icon = "fas fa-leaf",
-				onSelect = function()
-					initStepMenu(Config.step.props.locations[i], i)
-				end,
-				distance = 2.0
-			}
+	for k, v in pairs(Config.step.props.locations) do
+		local point = lib.points.new({
+			coords = v.spawn,
+			heading = v.spawn.w or 0.0,
+			distance = 30,
+			model = nil
 		})
-	end
-end
-exports("InitStep", initStep)
 
-function destroyStep()
-	for k, v in pairs(propsLoaded) do
-		if DoesEntityExist(v) then DeleteEntity(v) end
+		function point:onEnter()
+			if not self.model then
+				self.model = Utils.createProp(Config.step.props.model, vec4(self.coords.x, self.coords.y, self.coords.z, self.heading), true)
+
+				exports.ox_target:addLocalEntity(self.model, {
+					{
+						label = "Pressage de raisins",
+						groups = Config.step.job.active and {[Config.step.job.name] = Config.step.job.grade} or nil,
+						icon = "fas fa-leaf",
+						onSelect = function()
+							initStepMenu(k)
+						end,
+						distance = 2.0
+					}
+				})
+			end
+		end
+
+		function point:onExit()
+			if self.model then
+				if DoesEntityExist(self.model) then DeleteEntity(self.model) end
+				self.model = nil
+			end
+		end
 	end
-end
-exports("DestroyStep", destroyStep)
+
+	pointsLoaded[#pointsLoaded + 1] = point
+end)
 
 AddEventHandler("onResourceStop", function(resource)
-	if GetCurrentResourceName() == resource then
-		for k, v in pairs(propsLoaded) do
-			if DoesEntityExist(v) then DeleteEntity(v) end
+	if cache.resource == resource then
+		for k, v in pairs(pointsLoaded) do
+			if DoesEntityExist(v.model) then DeleteEntity(v.model) end
 		end
 	end
 end)

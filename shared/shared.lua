@@ -86,36 +86,42 @@ return {
 		props = {
 			model = "ng_proc_crate_04a",
 			locations = {
-				vec4(-1870.35, 2087.74, 140.99, 233.99),
-				vec4(-1865.80, 2084.94, 140.99, 227.63),
-				vec4(-1862.44, 2082.41, 140.99, 230.89),
-				vec4(-1882.77, 2092.93, 140.99, 258.87),
-				vec4(-1886.99, 2093.71, 140.99, 255.89),
-				vec4(-1891.45, 2094.21, 140.99, 265.99),
+				["step1"] = {spawn = vec4(-1870.35, 2087.74, 140.99, 233.99)},
+				["step2"] = {spawn = vec4(-1865.80, 2084.94, 140.99, 227.63)},
+				["step3"] = {spawn = vec4(-1862.44, 2082.41, 140.99, 230.89)},
+				["step4"] = {spawn = vec4(-1882.77, 2092.93, 140.99, 258.87)},
+				["step5"] = {spawn = vec4(-1886.99, 2093.71, 140.99, 255.89)},
+				["step6"] = {spawn = vec4(-1891.45, 2094.21, 140.99, 265.99)}
 			}
 		},
 		types = {
 			{
 				required = {
-					{itemName = "white_wine_prepared", count = 5, remove = true},
+					{name = "white_wine_prepared", count = 5, remove = true},
 				},
-				add = {itemName = "white_wine_juice", count = 2},
+				add = {
+					{name = "white_wine_juice", count = 2}
+				},
 				propName = "wine_grapes_white",
 				particles = "water_splash_ped_wade",
 			},
 			{
 				required = {
-					{itemName = "red_wine_prepared", count = 5, remove = true},
+					{name = "red_wine_prepared", count = 5, remove = true},
 				},
-				add = {itemName = "red_wine_juice", count = 2},
+				add = {
+					{name = "red_wine_juice", count = 2}
+				},
 				propName = "wine_grapes",
 				particles = "trail_splash_oil",
 			},
 			{
 				required = {
-					{itemName = "rose_wine_prepared", count = 5, remove = true},
+					{name = "rose_wine_prepared", count = 5, remove = true},
 				},
-				add = {itemName = "rose_wine_juice", count = 2},
+				add = {
+					{name = "rose_wine_juice", count = 2}
+				},
 				propName = "wine_grapes_pink",
                 particles = "trail_splash_blood",
 			}

@@ -62,11 +62,9 @@ CreateThread(function()
 			debug = Config.debug,
 			onEnter = function()
 				exports.wtr_vineyard:InitShop()
-				exports.wtr_vineyard:InitStep()
 			end,
 			onExit = function()
 				exports.wtr_vineyard:DestroyShop()
-				exports.wtr_vineyard:DestroyStep()
 			end
 		})
 	end

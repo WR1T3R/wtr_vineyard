@@ -66,7 +66,7 @@ local function initLabelingMenu(id)
 
 		options[#options + 1] = {
 			title = Writer.GetLabelDescription(label.add, amountPreload, ", ", true),
-			description = ("%s%s"):format(Writer.GetLabelDescription(label.required, amountPreload, ", ", false), (" \n\n**Temps d'étiquettage**: %d seconde%s"):format(animDuration, animDuration > 1 and "s" or "")),
+			description = ("%s%s"):format(Writer.GetLabelDescription(label.required, amountPreload, " \n", false), (" \n\n**Temps d'étiquettage**: %d seconde%s"):format(animDuration, animDuration > 1 and "s" or "")),
 			icon = #label.add > 1 and "fas fa-boxes" or Writer.GetImage(label.add[1].name),
 			arrow = canProceed,
 			disabled = not canProceed,
