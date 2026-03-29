@@ -72,9 +72,9 @@ lib.callback.register("wtr_vineyard:server:proceedFilling", function(source, id,
 
 	occupiedStations.filled = occupiedStations.filled or {}
 
-	if occupiedStations?.filled?[id] then 
+	if occupiedStations?.filled?[id] then
 		Writer.Notify(src, "Cette station de remplissage est déjà occupée", "error")
-		return 
+		return
 	end
 
 	occupiedStations.filled[id] = true
@@ -82,10 +82,10 @@ lib.callback.register("wtr_vineyard:server:proceedFilling", function(source, id,
 	if not passed then occupiedStations.filled[id] = nil return false end
 
 	local canPass, denyTable = Writer.CanCraft(src, data.required, amountPreload)
-	if not canPass then 
+	if not canPass then
 		Writer.Notify(src, "Vous n'avez pas les items requis pour faire cela", "error")
 		occupiedStations.filled[id] = nil
-		return 
+		return
 	end
 
 	for k, v in pairs(data.required) do
@@ -113,9 +113,9 @@ lib.callback.register("wtr_vineyard:server:proceedLabeling", function(source, id
 
 	occupiedStations.labeling = occupiedStations.labeling or {}
 
-	if occupiedStations?.labeling?[id] then 
+	if occupiedStations?.labeling?[id] then
 		Writer.Notify(src, "Cette station d'étiquettage est déjà occupée", "error")
-		return 
+		return
 	end
 
 	occupiedStations.labeling[id] = true
@@ -123,10 +123,10 @@ lib.callback.register("wtr_vineyard:server:proceedLabeling", function(source, id
 	if not passed then occupiedStations.labeling[id] = nil return false end
 
 	local canPass, denyTable = Writer.CanCraft(src, data.required, amountPreload)
-	if not canPass then 
+	if not canPass then
 		Writer.Notify(src, "Vous n'avez pas les items requis pour faire cela", "error")
 		occupiedStations.labeling[id] = nil
-		return 
+		return
 	end
 
 	for k, v in pairs(data.required) do
@@ -154,9 +154,9 @@ lib.callback.register("wtr_vineyard:server:proceedPrepare", function(source, id,
 
 	occupiedStations.prepare = occupiedStations.prepare or {}
 
-	if occupiedStations?.prepare?[id] then 
+	if occupiedStations?.prepare?[id] then
 		Writer.Notify(src, "Cette station de préparation est déjà occupée", "error")
-		return 
+		return
 	end
 
 	occupiedStations.prepare[id] = true
@@ -164,10 +164,10 @@ lib.callback.register("wtr_vineyard:server:proceedPrepare", function(source, id,
 	if not passed then occupiedStations.prepare[id] = nil return false end
 
 	local canPass, denyTable = Writer.CanCraft(src, data.required, amountPreload)
-	if not canPass then 
+	if not canPass then
 		Writer.Notify(src, "Vous n'avez pas les items requis pour faire cela", "error")
 		occupiedStations.prepare[id] = nil
-		return 
+		return
 	end
 
 	for k, v in pairs(data.required) do
@@ -195,9 +195,9 @@ lib.callback.register("wtr_vineyard:server:proceedStep", function(source, id, am
 
 	occupiedStations.step = occupiedStations.step or {}
 
-	if occupiedStations?.step?[id] then 
+	if occupiedStations?.step?[id] then
 		Writer.Notify(src, "Cette station de presse est déjà occupée", "error")
-		return 
+		return
 	end
 
 	occupiedStations.step[id] = true
@@ -205,10 +205,10 @@ lib.callback.register("wtr_vineyard:server:proceedStep", function(source, id, am
 	if not passed then occupiedStations.step[id] = nil return false end
 
 	local canPass, denyTable = Writer.CanCraft(src, data.required, amountPreload)
-	if not canPass then 
+	if not canPass then
 		Writer.Notify(src, "Vous n'avez pas les items requis pour faire cela", "error")
 		occupiedStations.step[id] = nil
-		return 
+		return
 	end
 
 	for k, v in pairs(data.required) do

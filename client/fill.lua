@@ -94,7 +94,7 @@ local function proceedAnimation(id, amountPreload, data)
 	SetTimeout(animDuration, function()
 		DeleteEntity(prop)
 	end)
-	
+
 	local progress = Writer.SendProgress({
 		duration = animDuration,
 		label = "Remplissage en cours..",
@@ -108,7 +108,7 @@ local function proceedAnimation(id, amountPreload, data)
 			car = true
 		},
 		anim = Config.fill.animation
-	}) 
+	})
 
 	return progress
 end
@@ -176,7 +176,7 @@ function initFill()
 		function point:onEnter()
 			if not self.model then
 				self.model = Utils.createProp(Config.fill.props.barrel.model, vec4(self.coords.x, self.coords.y, self.coords.z, self.heading), true)
-				
+
 				local offset = GetOffsetFromEntityInWorldCoords(self.model, Config.fill.props.tap.offset)
 				self.tap = Utils.createProp(Config.fill.props.tap.model, vec4(offset.x, offset.y, offset.z, self.heading), false)
 

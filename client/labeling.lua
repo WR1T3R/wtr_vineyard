@@ -31,7 +31,7 @@ local function proceedLabeling(id, amountPreload, data)
 			pos = vec3(0.005, 0.024, -0.031),
 			rot = vec3(-45.78, 22.05, -65.19),
 		}
-	}) 
+	})
 
 	return progress
 end
@@ -72,7 +72,7 @@ local function initLabelingMenu(id)
 			disabled = not canProceed,
 			onSelect = function()
 				local pass = lib.callback.await("wtr_vineyard:server:proceedLabeling", false, id, amountPreload, label)
-				if pass then 
+				if pass then
 					Writer.Notify(("Vous avez étiquetté %d bouteille%s avec succès"):format(amountPreload, amountPreload > 1 and "s" or ""))
 				end
 			end

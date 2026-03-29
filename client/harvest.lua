@@ -27,7 +27,7 @@ local keybind = lib.addKeybind({
 			if not isHarvested then
 				local zoneInfo = Utils.getInfoFromName(harvestData.name)
 
-				if Config.harvest[zoneInfo].job.active then 
+				if Config.harvest[zoneInfo].job.active then
 					if playerJob.name == Config.harvest[zoneInfo].job.name and playerJob.grade.level >= Config.harvest[zoneInfo].job.grade then
 					else
 						if playerJob.name == Config.harvest[zoneInfo].job.name and playerJob.grade.level < Config.harvest[zoneInfo].job.grade then

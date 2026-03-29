@@ -24,7 +24,7 @@ local function proceedStep(id, amountPreload, data)
 
 	local duration = (Config.step.duration * amountPreload)
 	CreateThread(function()
-		for i = 1, duration do		
+		for i = 1, duration do
 			FreezeEntityPosition(cache.ped, false)
 			ClearPedTasks(cache.ped)
 

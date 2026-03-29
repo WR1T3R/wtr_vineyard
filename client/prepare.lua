@@ -76,7 +76,7 @@ local function initPrepareMenu(id)
 			disabled = not canProceed,
 			onSelect = function()
 				local pass = lib.callback.await("wtr_vineyard:server:proceedPrepare", false, id, amountPreload, prepare)
-				if pass then 
+				if pass then
 					Writer.Notify(("Vous avez préparé %d raisin%s avec succès"):format(amountPreload, amountPreload > 1 and "s" or ""))
 				end
 			end

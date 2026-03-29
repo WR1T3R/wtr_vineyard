@@ -164,15 +164,15 @@ return {
 				},
 				propsTable = {
 					{
-						prop = "wine_grape_white", 
+						prop = "wine_grape_white",
 						bone = 18905,
-						pos = vec3(0.159, 0.018, 0.02), 
+						pos = vec3(0.159, 0.018, 0.02),
 						rot = vec3(-45.20, -82.39, 37.13)
 					},
 					{
 						prop = "prop_cs_scissors",
 						bone = 57005,
-						pos = vec3(0.083, 0.020, -0.02), 
+						pos = vec3(0.083, 0.020, -0.02),
 						rot = vec3(0.0, 0.0, 0.0)
 					}
 				}
@@ -186,15 +186,15 @@ return {
 				},
 				propsTable = {
 					{
-						prop = "wine_grape", 
+						prop = "wine_grape",
 						bone = 18905,
-						pos = vec3(0.159, 0.018, 0.02), 
+						pos = vec3(0.159, 0.018, 0.02),
 						rot = vec3(-45.20, -82.39, 37.13)
 					},
 					{
 						prop = "prop_cs_scissors",
 						bone = 57005,
-						pos = vec3(0.083, 0.020, -0.02), 
+						pos = vec3(0.083, 0.020, -0.02),
 						rot = vec3(0.0, 0.0, 0.0)
 					}
 				}
@@ -208,15 +208,15 @@ return {
 				},
 				propsTable = {
 					{
-						prop = "wine_grape_pink", 
+						prop = "wine_grape_pink",
 						bone = 18905,
-						pos = vec3(0.159, 0.018, 0.02), 
+						pos = vec3(0.159, 0.018, 0.02),
 						rot = vec3(-45.20, -82.39, 37.13)
 					},
 					{
 						prop = "prop_cs_scissors",
 						bone = 57005,
-						pos = vec3(0.083, 0.020, -0.02), 
+						pos = vec3(0.083, 0.020, -0.02),
 						rot = vec3(0.0, 0.0, 0.0)
 					}
 				}
@@ -323,7 +323,7 @@ return {
 				grade = 0
 			},
 			peds = {
-				model = "mp_m_shopkeep_01", 
+				model = "mp_m_shopkeep_01",
 				scenario = "WORLD_HUMAN_CLIPBOARD",
 				coords = vec4(-1907.14, 2084.97, 140.39, 46.36),
 			},
@@ -345,7 +345,7 @@ return {
 			scale = 0.7
 		}
 	},
-	
+
 	stashes = {
 		{
 			zone = {coords = vec3(-1931.9, 2040.1, 140.3), size = vec3(0.7, 0.8, 1.0), rotation = 345.0},
