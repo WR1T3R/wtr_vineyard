@@ -61,12 +61,10 @@ CreateThread(function()
 			thickness = v.thickness,
 			debug = Config.debug,
 			onEnter = function()
-				exports.wtr_vineyard:InitPrepare()
 				exports.wtr_vineyard:InitShop()
 				exports.wtr_vineyard:InitStep()
 			end,
 			onExit = function()
-				exports.wtr_vineyard:DestroyPrepare()
 				exports.wtr_vineyard:DestroyShop()
 				exports.wtr_vineyard:DestroyStep()
 			end

@@ -44,7 +44,7 @@ local function initLabelingMenu(id)
 	options[#options + 1] = {
 		title = ("Multiplicateur: **%d**"):format(amountPreload),
 		icon = "fas fa-circle-info",
-		description = "*Le multiplicateur permet de faire le remplissage de plusieurs bouteilles à la fois au lieu de ré-ouvrir le menu pour recommencer l'action*",
+		description = "*Le multiplicateur permet de faire l'étiquettage de plusieurs bouteilles à la fois au lieu de ré-ouvrir le menu pour recommencer l'action*",
 		arrow = true,
 		onSelect = function()
 			local predefinedAmount, amount = exports.wtr_vineyard:predefinedAmount("labeling")
@@ -62,10 +62,11 @@ local function initLabelingMenu(id)
 	for i = 1, #Config.labeling.types do
 		local label = Config.labeling.types[i]
 		local canProceed = Writer.CanCraft(label.required, amountPreload)
+		local animDuration = (amountPreload * Config.labeling.duration)
 
 		options[#options + 1] = {
 			title = Writer.GetLabelDescription(label.add, amountPreload, ", ", true),
-			description = Writer.GetLabelDescription(label.required, amountPreload, ", ", false),
+			description = ("%s%s"):format(Writer.GetLabelDescription(label.required, amountPreload, ", ", false), (" \n\n**Temps d'étiquettage**: %d seconde%s"):format(animDuration, animDuration > 1 and "s" or "")),
 			icon = #label.add > 1 and "fas fa-boxes" or Writer.GetImage(label.add[1].name),
 			arrow = canProceed,
 			disabled = not canProceed,
@@ -98,9 +99,9 @@ function initLabeling()
 
 		function point:onEnter()
 			if not self.model then
-				self.model = Utils.createProp("prop_paint_wpaper01", vec4(self.coords.x, self.coords.y, self.coords.z, self.heading), true)
+				self.model = Utils.createProp(Config.labeling.props.table.model, vec4(self.coords.x, self.coords.y, self.coords.z, self.heading), true)
 
-				local offset = GetOffsetFromEntityInWorldCoords(self.model, vec3(0.73, -0.3, 0.0))
+				local offset = GetOffsetFromEntityInWorldCoords(self.model, Config.labeling.props.box.offset)
 				self.box = Utils.createProp(Config.labeling.props.box.model, vec4(offset.x, offset.y, offset.z, self.heading), true)
 
 				exports.ox_target:addLocalEntity(self.model, {

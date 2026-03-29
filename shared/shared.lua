@@ -129,78 +129,89 @@ return {
 			name = "vineyard",
 			grade = 0
 		},
+		animation = {
+			dict = 'mp_arresting',
+			clip = 'a_uncuff'
+		},
 		props = {
 			table = {
 				model = "prop_table_04",
 				locations = {
-					{spawn = vec4(-1862.671, 2068.859, 140.00, 359.86), player = vec4(-1862.67, 2069.71, 140.00, 176.40)},
-					{spawn = vec4(-1865.082, 2068.863, 140.00, 359.86), player = vec4(-1865.11, 2069.66, 140.01, 176.34)},
-					{spawn = vec4(-1867.680, 2068.867, 140.00, 359.86), player = vec4(-1867.78, 2069.63, 140.01, 182.68)},
-					{spawn = vec4(-1870.232, 2068.874, 140.00, 359.86), player = vec4(-1870.37, 2069.67, 140.01, 185.30)}
+					["prepare1"] = {spawn = vec4(-1862.671, 2068.859, 140.00, 359.86), player = vec4(-1862.67, 2069.71, 140.00, 176.40)},
+					["prepare2"] = {spawn = vec4(-1865.082, 2068.863, 140.00, 359.86), player = vec4(-1865.11, 2069.66, 140.01, 176.34)},
+					["prepare3"] = {spawn = vec4(-1867.680, 2068.867, 140.00, 359.86), player = vec4(-1867.78, 2069.63, 140.01, 182.68)},
+					["prepare4"] = {spawn = vec4(-1870.232, 2068.874, 140.00, 359.86), player = vec4(-1870.37, 2069.67, 140.01, 185.30)}
 				}
 			},
 			box = {
 				model = "v_ind_cf_crate2",
-				locations = {
-					vec3(-1864.591, 2068.883, 140.809),
-					vec3(-1867.167, 2068.871, 140.809),
-					vec3(-1862.168, 2068.887, 140.809),
-					vec3(-1869.608, 2068.912, 140.809)
-				}
+				offset = vec3(0.61, 0.0, 0.0)
 			}
 		},
 		types = {
 			{
 				required = {
-					{itemName = "white_wine_grapes", count = 1, remove = true},
+					{name = "white_wine_grapes", count = 1, remove = true},
 				},
-				add = {itemName = "white_wine_prepared", count = 1},
+				add = {
+					{name = "white_wine_prepared", count = 1}
+				},
 				propsTable = {
 					{
 						prop = "wine_grape_white", 
-						coords = vec3(0.159, 0.018, 0.02), 
-						rotation = vec3(-45.20, -82.39, 37.13)
+						bone = 18905,
+						pos = vec3(0.159, 0.018, 0.02), 
+						rot = vec3(-45.20, -82.39, 37.13)
 					},
 					{
 						prop = "prop_cs_scissors",
-						coords = vec3(0.083, 0.020, -0.02), 
-						rotation = vec3(0.0, 0.0, 0.0)
+						bone = 57005,
+						pos = vec3(0.083, 0.020, -0.02), 
+						rot = vec3(0.0, 0.0, 0.0)
 					}
 				}
 			},
 			{
 				required = {
-					{itemName = "red_wine_grapes", count = 1, remove = true},
+					{name = "red_wine_grapes", count = 1, remove = true},
 				},
-				add = {itemName = "red_wine_prepared", count = 1},
+				add = {
+					{name = "red_wine_prepared", count = 1}
+				},
 				propsTable = {
 					{
 						prop = "wine_grape", 
-						coords = vec3(0.159, 0.018, 0.02), 
-						rotation = vec3(-45.20, -82.39, 37.13)
+						bone = 18905,
+						pos = vec3(0.159, 0.018, 0.02), 
+						rot = vec3(-45.20, -82.39, 37.13)
 					},
 					{
 						prop = "prop_cs_scissors",
-						coords = vec3(0.083, 0.020, -0.02), 
-						rotation = vec3(0.0, 0.0, 0.0)
+						bone = 57005,
+						pos = vec3(0.083, 0.020, -0.02), 
+						rot = vec3(0.0, 0.0, 0.0)
 					}
 				}
 			},
 			{
 				required = {
-					{itemName = "rose_wine_grapes", count = 1, remove = true},
+					{name = "rose_wine_grapes", count = 1, remove = true},
 				},
-				add = {itemName = "rose_wine_prepared", count = 1},
+				add = {
+					{name = "rose_wine_prepared", count = 1}
+				},
 				propsTable = {
 					{
 						prop = "wine_grape_pink", 
-						coords = vec3(0.159, 0.018, 0.02), 
-						rotation = vec3(-45.20, -82.39, 37.13)
+						bone = 18905,
+						pos = vec3(0.159, 0.018, 0.02), 
+						rot = vec3(-45.20, -82.39, 37.13)
 					},
 					{
 						prop = "prop_cs_scissors",
-						coords = vec3(0.083, 0.020, -0.02), 
-						rotation = vec3(0.0, 0.0, 0.0)
+						bone = 57005,
+						pos = vec3(0.083, 0.020, -0.02), 
+						rot = vec3(0.0, 0.0, 0.0)
 					}
 				}
 			}
@@ -236,7 +247,7 @@ return {
 		types = {
 			{
 				required = {
-					--{name = "white_wine_juice", count = 1, remove = true},
+					{name = "white_wine_juice", count = 1, remove = true},
 					{name = "empty_wine_bottle_labeled", count = 1, remove = true},
 				},
 				add = {
@@ -278,6 +289,10 @@ return {
 					["labeling1"] = {spawn = vec4(-1889.86, 2074.08, 140.01, 71.45), player = vec4(-1890.60, 2074.27, 140.01, 255.12)},
 					["labeling2"] = {spawn = vec4(-1897.04, 2079.83, 140.01, 226.89), player = vec4(-1896.46, 2079.30, 140.01, 50.03)},
 				}
+			},
+			box = {
+				model = "prop_paint_wpaper01",
+				offset = vec3(0.73, -0.3, 0.0)
 			}
 		},
 		types = {

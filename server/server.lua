@@ -144,9 +144,7 @@ lib.callback.register("wtr_vineyard:server:proceedFilling", function(source, id,
 	end
 
 	for k, v in pairs(data.add) do
-		if v.remove then
-			ox_inventory:AddItem(src, v.name, v.count * amountPreload)
-		end
+		ox_inventory:AddItem(src, v.name, v.count * amountPreload)
 	end
 
 	occupiedStations.filled[id] = nil
@@ -187,12 +185,51 @@ lib.callback.register("wtr_vineyard:server:proceedLabeling", function(source, id
 	end
 
 	for k, v in pairs(data.add) do
-		if v.remove then
-			ox_inventory:AddItem(src, v.name, v.count * amountPreload)
-		end
+		ox_inventory:AddItem(src, v.name, v.count * amountPreload)
 	end
 
 	occupiedStations.labeling[id] = nil
+	return true
+end)
+
+lib.callback.register("wtr_vineyard:server:proceedPrepare", function(source, id, amountPreload, data)
+	if not source then return false end
+	if not id then return false end
+	if not Config.prepare.props.table.locations[id] then return false end
+	if not amountPreload then return false end
+	if not data then return false end
+
+	local src = source
+
+	occupiedStations.prepare = occupiedStations.prepare or {}
+
+	if occupiedStations?.prepare?[id] then 
+		Writer.Notify(src, "Cette station de préparation est déjà occupée", "error")
+		return 
+	end
+
+	occupiedStations.prepare[id] = true
+	local passed = lib.callback.await("wtr_vineyard:client:proceedPrepare", src, id, amountPreload, data)
+	if not passed then occupiedStations.prepare[id] = nil return false end
+
+	local canPass, denyTable = Writer.CanCraft(src, data.required, amountPreload)
+	if not canPass then 
+		Writer.Notify(src, "Vous n'avez pas les items requis pour faire cela", "error")
+		occupiedStations.prepare[id] = nil
+		return 
+	end
+
+	for k, v in pairs(data.required) do
+		if v.remove then
+			ox_inventory:RemoveItem(src, v.name, v.count * amountPreload)
+		end
+	end
+
+	for k, v in pairs(data.add) do
+		ox_inventory:AddItem(src, v.name, v.count * amountPreload)
+	end
+
+	occupiedStations.prepare[id] = nil
 	return true
 end)
 

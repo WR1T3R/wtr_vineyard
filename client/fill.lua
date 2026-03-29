@@ -100,7 +100,7 @@ local function proceedAnimation(id, amountPreload, data)
 		label = "Remplissage en cours..",
 		position = 'bottom',
 		useWhileDead = false,
-		canCancel = true,
+		canCancel = false,
 		disable = {
 			move = true,
 			combat = true,
