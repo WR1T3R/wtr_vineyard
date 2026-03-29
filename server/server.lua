@@ -1,7 +1,5 @@
 local harvested = {}
 local stepped = {}
-local prepared = {}
-local machineData = {}
 
 local QBCore = exports["qb-core"]:GetCoreObject()
 local Config = require("shared.shared")
@@ -61,52 +59,6 @@ lib.callback.register("wtr_vineyard:server:canBoughtStandaloneItems", function(s
 	else
 		TriggerClientEvent("ox_lib:notify", src, {description = "Vous ne pouvez en porter autant", type = "error"})
 		return
-	end
-end)
-
-lib.callback.register("wtr_vineyard:server:getMachineData", function()
-	return machineData
-end)
-
-lib.callback.register("wtr_vineyard:server:collectAutomatic", function(source, item, amount)
-	local src = source
-	if ox_inventory:CanCarryItem(src, tostring(item), tonumber(amount)) then
-		if machineData.juices[tostring(item)] then
-			if machineData.juices[tostring(item)] - amount == 0 then
-				ox_inventory:AddItem(src, item, amount)
-				machineData.juices[tostring(item)] = nil
-			else
-				ox_inventory:AddItem(src, item, amount)
-				machineData.juices[tostring(item)] -= amount
-			end
-		end
-	else
-		TriggerClientEvent("ox_lib:notify", src, {description = "Vous ne pouvez en porter autant", type = "error"})
-		return
-	end
-end)
-
-lib.callback.register("wtr_vineyard:server:sellAutomatic", function(source, item, amount, price)
-	local src = source
-	local companyAmount = exports['Renewed-Banking']:getAccountMoney("vineyard")
-
-	if companyAmount >= (amount * price) then
-		ox_inventory:RemoveItem(src, item, amount)
-		ox_inventory:AddItem(src, "money", (amount * price))
-		exports['Renewed-Banking']:removeAccountMoney("vineyard", amount * price)
-
-		if machineData.process and machineData.process[tostring(item)] then
-			machineData.process[tostring(item)] += amount
-		else
-			if machineData.process then
-				machineData.process[tostring(item)] = amount
-			else
-				machineData.process = {}
-				machineData.process[tostring(item)] = amount
-			end
-		end
-	else
-		TriggerClientEvent("ox_lib:notify", src, {description = "Le vignoble n'a pas assez de fonds pour vous payer", type = "error"})
 	end
 end)
 
@@ -257,20 +209,6 @@ lib.callback.register("wtr_vineyard:server:setStepped", function(source, id, boo
 	stepped[newId] = bool
 end)
 
-lib.callback.register("wtr_vineyard:server:isPrepared", function(source, id)
-	local src = source
-	local newId = tostring(id)
-
-	return prepared[newId]
-end)
-
-lib.callback.register("wtr_vineyard:server:setPrepared", function(source, id, bool)
-	local src = source
-	local newId = tostring(id)
-
-	prepared[newId] = bool
-end)
-
 lib.callback.register("wtr_vineyard:server:registerShop", function(source, id)
 	local shopId = ox_inventory:RegisterShop(('wtr_vineyard:shop:%d'):format(id), {
         name = Config.shop[id].label,
@@ -354,41 +292,6 @@ CreateThread(function()
 	end
 end)
 
-local function getRewardItem(item)
-	for k,v in pairs(Config.automaticMachine.items) do
-		if v.itemName == item then
-			return v.give
-		end
-	end
-end
-
-CreateThread(function()
-	while true do
-		for item, amount in pairs(machineData.process) do
-			if machineData.process[tostring(item)] then
-				if machineData.process[tostring(item)] == 0 then
-					machineData.process[tostring(item)] = nil
-				else
-					if machineData.juices[tostring(getRewardItem(item))] then
-						machineData.juices[tostring(getRewardItem(item))] += 1
-						machineData.process[tostring(item)] -= 1
-						if machineData.process[tostring(item)] == 0 then
-							machineData.process[tostring(item)] = nil
-						end
-					else
-						machineData.juices[tostring(getRewardItem(item))] = 1
-						machineData.process[tostring(item)] -= 1
-						if machineData.process[tostring(item)] == 0 then
-							machineData.process[tostring(item)] = nil
-						end
-					end
-				end
-			end
-		end
-		Wait(Config.automaticMachine.processTime * 1000)
-	end
-end)
-
 lib.callback.register("wtr_vineyard:server:drink", function(source, data)
 	local src = source
 	local player = QBCore.Functions.GetPlayer(src)
@@ -421,23 +324,3 @@ for k, v in pairs(Config.consumables.glass) do
 		ox_inventory:RemoveItem(src, v.itemName, 1)
 	end)
 end
-
-AddEventHandler("onResourceStart", function(resource)
-	if GetCurrentResourceName() == resource then
-		local data = LoadResourceFile(GetCurrentResourceName(), "./data/machine.json")
-
-		machineData = json.decode(data) ~= "null" and json.decode(data) or {}
-		if not machineData.process then machineData.process = {} end
-		if not machineData.juices then machineData.juices = {} end
-	end
-end)
-
-AddEventHandler('txAdmin:events:serverShuttingDown', function(delay, author, message)
-	SaveResourceFile(GetCurrentResourceName(), "./data/machine.json", json.encode(machineData, {indent = true}))
-end)
-
-AddEventHandler("onResourceStop", function(resource)
-	if GetCurrentResourceName() == resource then
-		SaveResourceFile(GetCurrentResourceName(), "./data/machine.json", json.encode(machineData, {indent = true}))
-	end
-end)
