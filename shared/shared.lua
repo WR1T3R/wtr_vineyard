@@ -324,6 +324,7 @@ return {
 			},
 			peds = {
 				model = "mp_m_shopkeep_01", 
+				scenario = "WORLD_HUMAN_CLIPBOARD",
 				coords = vec4(-1907.14, 2084.97, 140.39, 46.36),
 			},
 			items = {

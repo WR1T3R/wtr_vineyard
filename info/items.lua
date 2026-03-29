@@ -91,4 +91,9 @@
 ["wine_label"] = {
     label = "Étiquette de vin",
     weight = 10
+},
+
+["wine_glass"] = {
+    label = "Verre de vin vide",
+    weight = 10
 }
