@@ -8,26 +8,6 @@ return {
 		["labeling"] = 60,
 	},
 
-	vineZone = {
-		{
-			points = {
-				vec3(-1888.0, 2097.0, 140.0),
-				vec3(-1912.0, 2095.0, 140.0),
-				vec3(-1922.0, 2085.0, 140.0),
-				vec3(-1923.0, 2071.0, 140.0),
-				vec3(-1910.0, 2054.0, 140.0),
-				vec3(-1882.0, 2040.0, 140.0),
-				vec3(-1867.0, 2039.0, 140.0),
-				vec3(-1853.0, 2045.0, 140.0),
-				vec3(-1845.0, 2055.0, 140.0),
-				vec3(-1846.0, 2067.0, 140.0),
-				vec3(-1857.0, 2089.0, 140.0),
-				vec3(-1877.0, 2098.0, 140.0),
-			},
-			thickness = 14.0,
-		},
-	},
-
 	harvest = {
 		[1] = {
 			label = "Raisins roses",
@@ -507,24 +487,6 @@ return {
 				},
 				add = {itemName = "wine_glass", count = 1}
 			},
-		}
-	},
-
-	automaticMachine = {
-		processTime = 3,
-		job = {
-			active = true,
-			name = "vineyard",
-			grade = 2
-		},
-		peds = {
-			model = "ig_bankman",
-			coords = vec4(-1925.69, 2058.89, 140.82, 356.48),
-		},
-		items = {
-			{itemName = "red_wine_prepared", price = 18, give = "red_wine_juice"},
-			{itemName = "white_wine_prepared", price = 18, give = "white_wine_juice"},
-			{itemName = "rose_wine_prepared", price = 18, give = "rose_wine_juice"}
 		}
 	}
 }
