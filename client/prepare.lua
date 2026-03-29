@@ -7,8 +7,6 @@ local function proceedPrepare(id, amountPreload, data)
 	local prepare = Config.prepare.props.table.locations[id]
 	local coords = prepare.player
 
-	lib.print.info(data.propsTable)
-
 	SetEntityCoords(cache.ped, coords)
 	SetEntityHeading(cache.ped, coords.w)
 
@@ -20,7 +18,6 @@ local function proceedPrepare(id, amountPreload, data)
 		newTable[k] = v
 	end
 
-	lib.print.info(newTable)
 	local progress = Writer.SendProgress({
 		label = "Préparation des raisins",
 		duration = (Config.prepare.duration * 1000) * exports.wtr_vineyard:getAmountPreload("prepare"),

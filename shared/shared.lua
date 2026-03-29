@@ -315,7 +315,7 @@ return {
 	},
 
 	shop = {
-		{
+		["shop1"] = {
 			label = "Magasin",
 			job = {
 				active = true,
@@ -333,6 +333,36 @@ return {
 				{name = 'wine_glass', price = 2},
 				{name = 'wine_label', price = 2},
 			}
+		}
+	},
+
+	standaloneStore = {
+		["standalone1"] = {
+			society = "vineyard",
+			job = {
+				active = true,
+				name = "vineyard",
+				grade = 0
+			},
+			stash = {
+				id = "standalone1",
+				label = "Ravitailler",
+				slots = 30,
+				weight = 1000000
+			},
+			shop = {
+				weight = 5000000,
+				label = "Magasin autonome"
+			},
+			items = {
+				["rose_wine_bottle"] = 100,
+				["red_wine_bottle"] = 100,
+				["white_wine_bottle"] = 100
+			},
+			peds = {
+				model = "u_m_y_antonb",
+				coords = vec4(-1882.13, 2048.76, 141.00, 164.93)
+			},
 		}
 	},
 
@@ -476,31 +506,6 @@ return {
 					}
 				},
 				add = {itemName = "wine_glass", count = 1}
-			},
-		}
-	},
-
-	standaloneStore = {
-		{
-			job = {
-				active = true,
-				name = "vineyard",
-				grade = 2
-			},
-			stash = {
-				id = "standalone1",
-				label = "Ravitailler",
-				slots = 30,
-				weight = 1000000
-			},
-			items = {
-				{itemName = "rose_wine_bottle", price = 100},
-				{itemName = "red_wine_bottle", price = 100},
-				{itemName = "white_wine_bottle", price = 100},
-			},
-			peds = {
-				model = "u_m_y_antonb",
-				coords = vec4(-1882.13, 2048.76, 141.00, 164.93),
 			},
 		}
 	},

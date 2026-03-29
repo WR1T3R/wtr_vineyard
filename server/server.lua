@@ -8,7 +8,7 @@ local occupiedStations = {}
 
 local function isItemAllowlisted(id, name)
 	for k, v in pairs(Config.standaloneStore[id].items) do
-		if name == v.itemName then
+		if name == k then
 			return true
 		end
 	end
@@ -16,31 +16,72 @@ local function isItemAllowlisted(id, name)
 	return false
 end
 
-lib.callback.register("wtr_vineyard:server:initHooks", function(source, id)
-	for k,v in pairs(Config.standaloneStore) do
-		ox_inventory:registerHook('swapItems', function(payload)
-			if payload.toInventory == id then
-				if payload.fromSlot then
-					local isAllow = isItemAllowlisted(k, payload.fromSlot.name, v)
+local function convertStandaloneInventory(stashId, id)
+	local stashItems = ox_inventory:GetInventoryItems(stashId)
+	local shopItems = {}
 
-					if not isAllow then return false end
-				end
-			end
-			return true
-		end, {
-			inventoryFilter = {
-				id,
-			}
-		})
+	local convertInventory = {}
+
+	for _, data in pairs(stashItems or {}) do
+		shopItems[data.name] = shopItems[data.name] or {}
+		shopItems[data.name].count = shopItems[data.name].count or 0
+
+		shopItems[data.name].count += data.count
 	end
-end)
 
-lib.callback.register("wtr_vineyard:server:getInventoryItems", function(source, id)
-	local src = source
-	local items = ox_inventory:GetInventoryItems(id)
+	for k, v in pairs(shopItems or {}) do
+		convertInventory[#convertInventory + 1] = {name = k, count = v.count, price = Config.standaloneStore[id].items[k]}
+	end
 
-	return items
-end)
+	return convertInventory
+end
+
+local function updateShop(stashId, id)
+	local items = convertStandaloneInventory(stashId, id)
+	local shopData = Config.standaloneStore[id]
+
+	local shopId = ox_inventory:RegisterShop(("wtr_vineyard:standaloneStore:%s"):format(id), {
+		name = shopData.label,
+		inventory = items,
+		groups = shopData.job.active and {[shopData.job.name] = shopData.job.grade} or nil,
+		locations = {vec3(shopData.peds.coords.x, shopData.peds.coords.y, shopData.peds.coords.z)},
+	})
+end
+
+local function initHook(stashId, id)
+	ox_inventory:registerHook('buyItem', function(payload)
+		if payload.shopType == ("wtr_vineyard:standaloneStore:%s"):format(id) then
+			ox_inventory:RemoveItem(stashId, payload.itemName, payload.count)
+			Writer.UpdateSocietyMoney("add", payload.totalPrice, Config.standaloneStore[id].society)
+			updateShop(stashId, id)
+			return true
+		end
+		return true
+	end, {})
+
+	ox_inventory:registerHook('swapItems', function(payload)
+		if payload.toInventory == stashId then
+			if payload.fromSlot then
+				local isAllow = isItemAllowlisted(id, payload.fromSlot.name)
+
+				if not isAllow then return false end
+
+				SetTimeout(50, function()
+					updateShop(stashId, id)
+				end)
+			end
+		elseif payload.fromInventory == stashId then
+			SetTimeout(50, function()
+				updateShop(stashId, id)
+			end)
+
+			return true
+		end
+		return true
+	end, {
+		inventoryFilter = {stashId}
+	})
+end
 
 lib.callback.register("wtr_vineyard:server:canBoughtStandaloneItems", function(source, id, item, amount, price)
 	local src = source
@@ -235,17 +276,6 @@ lib.callback.register("wtr_vineyard:server:setupItems", function(source, func, i
 	end
 end)
 
-lib.callback.register("wtr_vineyard:server:registerShop", function(source, id)
-	local shopId = ox_inventory:RegisterShop(('wtr_vineyard:shop:%d'):format(id), {
-        name = Config.shop[id].label,
-        inventory = Config.shop[id].items,
-        groups = Config.shop[id].job.active and {[Config.shop[id].job.name] = Config.shop[id].job.grade} or nil,
-        locations = {vec3(Config.shop[id].peds.coords.x, Config.shop[id].peds.coords.y, Config.shop[id].peds.coords.z)},
-    })
-
-	return shopId
-end)
-
 lib.callback.register("wtr_vineyard:server:isHarvested", function(source, name, areasId, harvestId)
 	local src = source
 	local newName = tostring(name)
@@ -315,6 +345,33 @@ CreateThread(function()
 		end
 
 		Wait(1000)
+	end
+end)
+
+CreateThread(function()
+	for k, v in pairs(Config.standaloneStore) do
+		local stashId = ("wtr_vineyard:standaloneShop:%s"):format(k)
+
+		ox_inventory:RegisterStash(stashId, v.shop.label, Writer.GetTableSize(v.items), v.shop.weight, nil)
+		initHook(stashId, k)
+
+		local shopItems = convertStandaloneInventory(stashId, k)
+
+		local shopId = ox_inventory:RegisterShop(('wtr_vineyard:standaloneStore:%s'):format(k), {
+			name = v.label,
+			inventory = shopItems,
+			groups = nil,
+			locations = {vec3(v.peds.coords.x, v.peds.coords.y, v.peds.coords.z)},
+		})
+	end
+
+	for k, v in pairs(Config.shop) do
+		local shopId = ox_inventory:RegisterShop(('wtr_vineyard:shop:%s'):format(k), {
+			name = v.label,
+			inventory = v.items,
+			groups = v.job.active and {[v.job.name] = v.job.grade} or nil,
+			locations = {vec3(v.peds.coords.x, v.peds.coords.y, v.peds.coords.z)},
+		})
 	end
 end)
 

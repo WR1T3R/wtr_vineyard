@@ -55,20 +55,6 @@ CreateThread(function()
 	local kvp = GetResourceKvpInt("wtr_vineyard:amountPreload")
 	amountPreload = kvp ~= 0 and kvp or 1
 
-	for k, v in pairs(Config.vineZone) do
-		local poly = lib.zones.poly({
-			points = v.points,
-			thickness = v.thickness,
-			debug = Config.debug,
-			onEnter = function()
-				exports.wtr_vineyard:InitShop()
-			end,
-			onExit = function()
-				exports.wtr_vineyard:DestroyShop()
-			end
-		})
-	end
-
 	for k, v in pairs(Config.stashes) do
 		exports.ox_target:addBoxZone({
 			coords = v.zone.coords,
@@ -133,8 +119,8 @@ function preparePour(data)
 							rot = vec3(-70.0, 50.0, 0.0)
 						},
 					},
-				}) 
-				then 
+				})
+				then
 					lib.callback.await("wtr_vineyard:server:drink", false, data)
 				end
 			end
@@ -169,8 +155,8 @@ function preparePour(data)
 							rot = vec3(-45.78, 22.05, -65.19),
 						},
 					},
-				}) 
-				then 
+				})
+				then
 					for k,v in pairs(data.pour.required) do
 						if v.remove then
 							lib.callback.await("wtr_vineyard:server:setupItems", false, "remove", v.itemName, v.count)
@@ -221,8 +207,8 @@ lib.callback.register("wtr_vineyard:client:drinkGlass", function(data)
 				rot = vec3(-80.0, 100.0, 0.0)
 			},
 		},
-	}) 
-	then 
+	})
+	then
 		return true
 	end
 end)
