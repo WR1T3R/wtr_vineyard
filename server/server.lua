@@ -36,7 +36,7 @@ local function convertStandaloneInventory(stashId, id)
 	return convertInventory
 end
 
-local function updateShop(stashId, id)
+local function updateStandaloneShop(stashId, id)
 	local items = convertStandaloneInventory(stashId, id)
 	local shopData = Config.standaloneStore[id]
 
@@ -48,12 +48,12 @@ local function updateShop(stashId, id)
 	})
 end
 
-local function initHook(stashId, id)
+local function initStandaloneShopHook(stashId, id)
 	ox_inventory:registerHook('buyItem', function(payload)
 		if payload.shopType == ("wtr_vineyard:standaloneStore:%s"):format(id) then
 			ox_inventory:RemoveItem(stashId, payload.itemName, payload.count)
 			Writer.UpdateSocietyMoney("add", payload.totalPrice, Config.standaloneStore[id].society)
-			updateShop(stashId, id)
+			updateStandaloneShop(stashId, id)
 			return true
 		end
 		return true
@@ -67,12 +67,12 @@ local function initHook(stashId, id)
 				if not isAllow then return false end
 
 				SetTimeout(50, function()
-					updateShop(stashId, id)
+					updateStandaloneShop(stashId, id)
 				end)
 			end
 		elseif payload.fromInventory == stashId then
 			SetTimeout(50, function()
-				updateShop(stashId, id)
+				updateStandaloneShop(stashId, id)
 			end)
 
 			return true
@@ -82,25 +82,6 @@ local function initHook(stashId, id)
 		inventoryFilter = {stashId}
 	})
 end
-
-lib.callback.register("wtr_vineyard:server:canBoughtStandaloneItems", function(source, id, item, amount, price)
-	local src = source
-
-	if ox_inventory:CanCarryItem(src, item, amount) then
-		if ox_inventory:GetItemCount(src, "money") >= (amount * price) then
-			ox_inventory:AddItem(src, item, amount)
-			ox_inventory:RemoveItem(id, item, amount)
-			ox_inventory:RemoveItem(src, "money", amount * price)
-			exports['Renewed-Banking']:addAccountMoney("vineyard", amount * price)
-		else
-			TriggerClientEvent("ox_lib:notify", src, {description = "Vous n'avez pas les fonds nécessaires (Argent comptant)", type = "error"})
-			return
-		end
-	else
-		TriggerClientEvent("ox_lib:notify", src, {description = "Vous ne pouvez en porter autant", type = "error"})
-		return
-	end
-end)
 
 lib.callback.register("wtr_vineyard:server:proceedFilling", function(source, id, amountPreload, data)
 	if not source then return false end
@@ -353,7 +334,7 @@ CreateThread(function()
 		local stashId = ("wtr_vineyard:standaloneShop:%s"):format(k)
 
 		ox_inventory:RegisterStash(stashId, v.shop.label, Writer.GetTableSize(v.items), v.shop.weight, nil)
-		initHook(stashId, k)
+		initStandaloneShopHook(stashId, k)
 
 		local shopItems = convertStandaloneInventory(stashId, k)
 
