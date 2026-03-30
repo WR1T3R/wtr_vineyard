@@ -63,6 +63,16 @@ return {
 			name = "vineyard",
 			grade = 0
 		},
+		target = {
+			label = "Pressage de raisins",
+			icon = "fas fa-leaf",
+			distance = 2.0
+		},
+		progressBar = {
+			label = "Pressage en cours",
+			anim = {},
+			prop = {}
+		},
 		props = {
 			model = "ng_proc_crate_04a",
 			locations = {
@@ -110,14 +120,22 @@ return {
 
 	prepare = {
 		duration = 1, -- in seconds
+		progressBar = {
+			label = "Préparation en cours",
+			anim = {
+				dict = 'mp_arresting',
+				clip = 'a_uncuff'
+			}
+		},
 		job = {
 			active = false,
 			name = "vineyard",
 			grade = 0
 		},
-		animation = {
-			dict = 'mp_arresting',
-			clip = 'a_uncuff'
+		target = {
+			label = "Préparation de raisins",
+			icon = "fas fa-leaf",
+			distance = 2.0
 		},
 		props = {
 			table = {
@@ -206,9 +224,17 @@ return {
 
 	fill = {
 		duration = 1, -- in seconds
-		animation = {
-			dict = 'random@shop_tattoo',
-			clip = '_idle_a'
+		progressBar = {
+			label = "Remplissage en cours",
+			anim = {
+				dict = 'random@shop_tattoo',
+				clip = '_idle_a'
+			}
+		},
+		target = {
+			label = "Remplissage",
+			icon = "fas fa-wine-glass",
+			distance = 2.0
 		},
 		job = {
 			active = false,
@@ -268,6 +294,25 @@ return {
 			name = "vineyard",
 			grade = 0
 		},
+		target = {
+			label = "Station d'étiquetage",
+			icon = "fas fa-newspaper",
+			distance = 2.0
+		},
+		progressBar = {
+			label = "Étiquetage en cours",
+			anim = {
+				dict = 'mp_arresting',
+				clip = 'a_uncuff'
+			},
+			prop = {
+				model = "prop_wine_bot_01",
+				bone = 57005,
+				pos = vec3(0.15831894116764, -0.12370083930977, -0.072335568934338),
+				rot = vec3(73.394121552432, -47.809381424638, -176.880055109),
+				rotOrder = 1
+			}
+		},
 		props = {
 			table = {
 				model = "prop_table_04",
@@ -302,6 +347,11 @@ return {
 				name = "vineyard",
 				grade = 0
 			},
+			target = {
+				label = "Magasin",
+				icon = "fas fa-cash-register",
+				distance = 2.0
+			},
 			peds = {
 				model = "mp_m_shopkeep_01",
 				scenario = "WORLD_HUMAN_CLIPBOARD",
@@ -323,6 +373,18 @@ return {
 				active = true,
 				name = "vineyard",
 				grade = 0
+			},
+			target = {
+				standalone = {
+					label = "Magasin autonome",
+					icon = "fas fa-cash-register",
+					distance = 2.0
+				},
+				refill = {
+					label = "Ravitailler",
+					icon = "fas fa-boxes",
+					distance = 2.0
+				}
 			},
 			stash = {
 				id = "standalone1",

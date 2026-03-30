@@ -65,4 +65,13 @@ function Utils.createEntity(model, coords)
 	return peds
 end
 
+function Utils.getTotalAddItems(addTable, amountPreload)
+	local totalAmount = 0
+	for k, v in pairs(addTable) do
+		totalAmount += v.count
+	end
+
+	return totalAmount * amountPreload
+end
+
 return Utils

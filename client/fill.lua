@@ -2,8 +2,8 @@ local Config = require("shared.shared")
 local Utils = require("client.utils")
 
 local pointsLoaded = {}
-
 local boxLoaded = {}
+
 local function formatFillBottles(id, amountPreload)
 	local barrel = pointsLoaded[id].model
 	local heading = pointsLoaded[id].heading - 90.0
@@ -95,9 +95,10 @@ local function proceedAnimation(id, amountPreload, data)
 		DeleteEntity(prop)
 	end)
 
+	local progressBar = Config.fill.progressBar
 	local progress = Writer.SendProgress({
 		duration = animDuration,
-		label = "Remplissage en cours..",
+		label = progressBar.label or "Remplissage en cours",
 		position = 'bottom',
 		useWhileDead = false,
 		canCancel = false,
@@ -107,7 +108,8 @@ local function proceedAnimation(id, amountPreload, data)
 			mouse = false,
 			car = true
 		},
-		anim = Config.fill.animation
+		anim = progressBar.anim or {},
+		prop = progressBar.prop or {}
 	})
 
 	return progress
@@ -150,7 +152,9 @@ local function initFillMenu(id)
 			onSelect = function()
 				local pass = lib.callback.await("wtr_vineyard:server:proceedFilling", false, id, amountPreload, fill)
 				if pass then
-					Writer.Notify(("Vous avez rempli %d bouteille%s avec succès"):format(amountPreload, amountPreload > 1 and "s" or ""))
+					local totalAdd = Utils.getTotalAddItems(fill.add, amountPreload)
+
+					Writer.Notify(("Vous avez rempli %d bouteille%s avec succès"):format(totalAdd, totalAdd > 1 and "s" or ""))
 				end
 			end
 		}
@@ -182,16 +186,13 @@ function initFill()
 
 				exports.ox_target:addLocalEntity(self.model, {
 					{
-						label = "Remplissage",
+						label = Config.fill.target.label or "Remplissage",
+						icon = Config.fill.target.icon or "fas fa-wine-glass",
 						groups = Config.fill.job.active and {[Config.fill.job.name] = Config.fill.job.grade} or nil,
-						icon = "fas fa-wine-glass",
 						onSelect = function()
-							local tapCoords = GetEntityCoords(self.tap)
-							local tapHeading = GetEntityHeading(self.tap)
-
 							initFillMenu(k)
 						end,
-						distance = 2.0,
+						distance = Config.fill.target.distance or 2.0
 					}
 				})
 			end

@@ -26,13 +26,13 @@ local function initShop()
 
 			exports.ox_target:addLocalEntity(self.model, {
 				{
-					label = "Magasin",
-					icon = "fas fa-cash-register",
+					label = v.target.label or "Magasin",
+					icon = v.target.icon or "fas fa-cash-register",
 					groups = v.job.active and {[v.job.name] = v.job.grade} or nil,
 					onSelect = function()
 						exports.ox_inventory:openInventory("shop", {type = ('wtr_vineyard:shop:%s'):format(k), id = 1})
 					end,
-					distance = 2.0,
+					distance = v.target.distance or 2.0,
 				}
 			})
 		end
@@ -72,21 +72,21 @@ local function initStandaloneShop()
 
 			exports.ox_target:addLocalEntity(self.model, {
 				{
-					label = "Magasin autonome",
-					icon = "fas fa-cash-register",
+					label = v.target.standalone.label or "Magasin autonome",
+					icon = v.target.standalone.icon or "fas fa-cash-register",
 					onSelect = function()
 						exports.ox_inventory:openInventory("shop", {type = ('wtr_vineyard:standaloneStore:%s'):format(k), id = 1})
 					end,
-					distance = 2.0,
+					distance = v.target.standalone.distance or 2.0
 				},
 				{
-					label = "Ravitailler",
-					icon = "fas fa-box",
+					label = v.target.refill.label or "Ravitailler",
+					icon = v.target.refill.icon or "fas fa-boxes",
 					groups = v.job.active and {[v.job.name] = v.job.grade} or nil,
 					onSelect = function()
 						exports.ox_inventory:openInventory("stash", ("wtr_vineyard:standaloneShop:%s"):format(k))
 					end,
-					distance = 2.0,
+					distance = v.target.refill.distance or 2.0
 				}
 			})
 		end

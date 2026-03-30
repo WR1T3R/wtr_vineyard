@@ -12,15 +12,17 @@ local function proceedStep(id, amountPreload, data)
 		heading = GetEntityHeading(cache.ped),
 	}
 
+	SetEntityCoords(cache.ped, vec3(coords.x, coords.y, coords.z - 1.0))
+	SetEntityHeading(cache.ped, coords.w - 90)
+
 	local prop = Utils.createProp(data.propName, vec4(coords.x, coords.y, coords.z - 0.7, coords.w), false, true)
 	while not DoesEntityExist(prop) do Wait(10) end
+
+	SetEntityCollision(prop, false, false)
 
 	lib.requestNamedPtfxAsset("core")
 	UseParticleFxAssetNextCall("core")
 	local particles = StartParticleFxLoopedAtCoord(data.particles, coords.x, coords.y, coords.z - 0.7, 0.0, 0.0, 0.0, 2.0, 0.01, false, false, false, false)
-
-	SetEntityCoords(cache.ped, vec3(coords.x, coords.y, coords.z - 1.0))
-	SetEntityHeading(cache.ped, coords.w - 90)
 
 	local duration = (Config.step.duration * amountPreload)
 	CreateThread(function()
@@ -34,9 +36,10 @@ local function proceedStep(id, amountPreload, data)
 		end
 	end)
 
+	local progressBar = Config.step.progressBar
 	local progress = Writer.SendProgress({
 		duration = duration * 1000,
-		label = "Pressage en cours..",
+		label = progressBar.label or "Pressage en cours..",
 		position = 'bottom',
 		useWhileDead = false,
 		canCancel = true,
@@ -46,6 +49,8 @@ local function proceedStep(id, amountPreload, data)
 			mouse = false,
 			car = true
 		},
+		anim = progressBar.anim or {},
+		prop = progressBar.prop or {}
 	})
 
 	FreezeEntityPosition(cache.ped, false)
@@ -96,7 +101,9 @@ local function initStepMenu(id)
 			onSelect = function()
 				local pass = lib.callback.await("wtr_vineyard:server:proceedStep", false, id, amountPreload, step)
 				if pass then
-					Writer.Notify(("Vous avez pressé %d raisin%s avec succès"):format(amountPreload, amountPreload > 1 and "s" or ""))
+					local totalAdd = Utils.getTotalAddItems(step.add, amountPreload)
+
+					Writer.Notify(("Vous avez pressé %d raisin%s avec succès"):format(totalAdd, totalAdd > 1 and "s" or ""))
 				end
 			end
 		}
@@ -127,13 +134,13 @@ CreateThread(function()
 
 				exports.ox_target:addLocalEntity(self.model, {
 					{
-						label = "Pressage de raisins",
+						label = Config.step.target.label or "Pressage de raisins",
+						icon = Config.step.target.icon or "fas fa-leaf",
 						groups = Config.step.job.active and {[Config.step.job.name] = Config.step.job.grade} or nil,
-						icon = "fas fa-leaf",
 						onSelect = function()
 							initStepMenu(k)
 						end,
-						distance = 2.0
+						distance = Config.step.target.distance or 2.0
 					}
 				})
 			end
@@ -145,9 +152,9 @@ CreateThread(function()
 				self.model = nil
 			end
 		end
-	end
 
-	pointsLoaded[#pointsLoaded + 1] = point
+		pointsLoaded[#pointsLoaded + 1] = point
+	end
 end)
 
 AddEventHandler("onResourceStop", function(resource)

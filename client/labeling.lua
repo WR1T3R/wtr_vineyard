@@ -5,13 +5,14 @@ local pointsLoaded = {}
 
 local function proceedLabeling(id, amountPreload, data)
 	local label = Config.labeling.props.table.locations[id]
+	local progressBar = Config.labeling.progressBar
 	local coords = label.player
 
 	SetEntityCoords(cache.ped, coords)
 	SetEntityHeading(cache.ped, coords.w)
 
 	local progress = Writer.SendProgress({
-		label = "Étiquetage en cours..",
+		label = progressBar.label or "Étiquetage en cours",
 		duration = ((Config.labeling.duration * 1000) * amountPreload),
 		position = 'bottom',
 		useWhileDead = false,
@@ -21,16 +22,8 @@ local function proceedLabeling(id, amountPreload, data)
 			car = true,
 			combat = true
 		},
-		anim = {
-			dict = 'mp_arresting',
-			clip = 'a_uncuff'
-		},
-		prop = {
-			model = "prop_wine_bot_01",
-			bone = 57005,
-			pos = vec3(0.005, 0.024, -0.031),
-			rot = vec3(-45.78, 22.05, -65.19),
-		}
+		anim = progressBar.anim or {},
+		prop = progressBar.prop or {}
 	})
 
 	return progress
@@ -44,7 +37,7 @@ local function initLabelingMenu(id)
 	options[#options + 1] = {
 		title = ("Multiplicateur: **%d**"):format(amountPreload),
 		icon = "fas fa-circle-info",
-		description = "*Le multiplicateur permet de faire l'étiquettage de plusieurs bouteilles à la fois au lieu de ré-ouvrir le menu pour recommencer l'action*",
+		description = "*Le multiplicateur permet de faire l'étiquetage de plusieurs bouteilles à la fois au lieu de ré-ouvrir le menu pour recommencer l'action*",
 		arrow = true,
 		onSelect = function()
 			local predefinedAmount, amount = exports.wtr_vineyard:predefinedAmount("labeling")
@@ -66,14 +59,16 @@ local function initLabelingMenu(id)
 
 		options[#options + 1] = {
 			title = Writer.GetLabelDescription(label.add, amountPreload, ", ", true),
-			description = ("%s%s"):format(Writer.GetLabelDescription(label.required, amountPreload, " \n", false), (" \n\n**Temps d'étiquettage**: %d seconde%s"):format(animDuration, animDuration > 1 and "s" or "")),
+			description = ("%s%s"):format(Writer.GetLabelDescription(label.required, amountPreload, " \n", false), (" \n\n**Temps d'étiquetage**: %d seconde%s"):format(animDuration, animDuration > 1 and "s" or "")),
 			icon = #label.add > 1 and "fas fa-boxes" or Writer.GetImage(label.add[1].name),
 			arrow = canProceed,
 			disabled = not canProceed,
 			onSelect = function()
 				local pass = lib.callback.await("wtr_vineyard:server:proceedLabeling", false, id, amountPreload, label)
 				if pass then
-					Writer.Notify(("Vous avez étiquetté %d bouteille%s avec succès"):format(amountPreload, amountPreload > 1 and "s" or ""))
+					local totalAdd = Utils.getTotalAddItems(label.add, amountPreload)
+
+					Writer.Notify(("Vous avez étiqueté %d bouteille%s avec succès"):format(totalAdd, totalAdd > 1 and "s" or ""))
 				end
 			end
 		}
@@ -81,7 +76,7 @@ local function initLabelingMenu(id)
 
 	lib.registerContext({
 		id = "wtr_vineyard:labelingMenu",
-		title = "Étiqueter",
+		title = "Station d'étiquetage",
 		options = options
 	})
 	lib.showContext("wtr_vineyard:labelingMenu")
@@ -106,13 +101,13 @@ function initLabeling()
 
 				exports.ox_target:addLocalEntity(self.model, {
 					{
-						label = "Étiqueter",
-						icon = "fas fa-leaf",
+						label = Config.labeling.target.label or "Étiqueter",
+						icon = Config.labeling.target.icon or "fas fa-newspaper",
 						groups = Config.labeling.job.active and {[Config.labeling.job.name] = Config.labeling.job.grade} or nil,
 						onSelect = function()
 							initLabelingMenu(k)
 						end,
-						distance = 2.0,
+						distance = Config.labeling.target.distance or 2.0
 					}
 				})
 			end

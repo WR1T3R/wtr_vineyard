@@ -18,8 +18,9 @@ local function proceedPrepare(id, amountPreload, data)
 		newTable[k] = v
 	end
 
+	local progressBar = Config.prepare.progressBar
 	local progress = Writer.SendProgress({
-		label = "Préparation des raisins",
+		label = progressBar.label or "Préparation des raisins",
 		duration = (Config.prepare.duration * 1000) * exports.wtr_vineyard:getAmountPreload("prepare"),
 		position = 'bottom',
 		useWhileDead = false,
@@ -29,7 +30,7 @@ local function proceedPrepare(id, amountPreload, data)
 			combat = true,
 			car = true,
 		},
-		anim = Config.prepare.animation,
+		anim = progressBar.anim or {},
 		prop = newTable
 	})
 
@@ -74,7 +75,9 @@ local function initPrepareMenu(id)
 			onSelect = function()
 				local pass = lib.callback.await("wtr_vineyard:server:proceedPrepare", false, id, amountPreload, prepare)
 				if pass then
-					Writer.Notify(("Vous avez préparé %d raisin%s avec succès"):format(amountPreload, amountPreload > 1 and "s" or ""))
+					local totalAdd = Utils.getTotalAddItems(prepare.add, amountPreload)
+
+					Writer.Notify(("Vous avez préparé %d raisin%s avec succès"):format(totalAdd, totalAdd > 1 and "s" or ""))
 				end
 			end
 		}
@@ -105,13 +108,13 @@ function initPrepare()
 			self.box = Utils.createProp(Config.prepare.props.box.model, vec4(offset.x, offset.y, offset.z, self.heading), true)
 			exports.ox_target:addLocalEntity(self.model, {
 				{
-					label = "Préparation de raisins",
+					label = Config.prepare.target.label or "Préparation de raisins",
+					icon = Config.prepare.target.icon or "fas fa-leaf",
 					groups = Config.prepare.job.active and {[Config.prepare.job.name] = Config.prepare.job.grade} or nil,
-					icon = "fas fa-leaf",
 					onSelect = function()
 						initPrepareMenu(k)
 					end,
-					distance = 2.0,
+					distance = Config.prepare.target.distance or 2.0,
 				}
 			})
 		end
