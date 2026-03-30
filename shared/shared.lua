@@ -1,5 +1,5 @@
 return {
-	debugPoly = false,
+	debugPoly = true,
 
 	maxPredefinedAmount = {
 		["fill"] = 24,

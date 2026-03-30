@@ -82,8 +82,9 @@ end)
 CreateThread(function()
 	while not LocalPlayer.state.isLoggedIn do Wait(30) end
 
-	playerJob = QBCore.Functions.GetPlayerData().job
+	playerJob = Writer.GetJob()
 
+	lib.print.info(playerJob)
 	for name, locations in pairs(areas) do
 		local zoneInfo = Utils.getInfoFromName(name)
 
@@ -98,66 +99,78 @@ CreateThread(function()
 							for i = 1, #zones.harvestLocations do
 								local coords = zones.harvestLocations[i]
 
-								lib.requestNamedPtfxAsset("core")
-								UseParticleFxAssetNextCall("core")
-								local particles = StartParticleFxLoopedAtCoord("fire_wrecked_plane_cockpit", coords.x, coords.y, coords.z, 0.0, 0.0, 0.0, 0.0, 0.01, false, false, false, false)
-
 								local point = lib.points.new({
 									coords = coords,
-									distance = 1.7,
+									distance = 10.0,
 								})
 
-								function point:onEnter()
-									canHarvest = true
-									harvestData = {
-										id = id,
-										name = name,
-										harvestId = i,
-										coords = coords
-									}
-									lib.showTextUI(("**Vignoble**  \n*[%s] - Récolter*"):format(keybind.currentKey), {icon = "fas fa-leaf", iconColor = Config.harvest[zoneInfo].color, position = "left-center"})
-								end
+								local r, g, b = lib.math.hextorgb(Config.harvest[zoneInfo].color)
+								local marker = lib.marker.new({
+									type = 2,
+									width = 1,
+									rotation = vec3(180.0, 0.0, 0.0),
+									bobUpAndDown = true,
+									faceCamera = true,
+									coords = vec3(coords.x, coords.y, coords.z + 1.0),
+									color = {r = r, g = g, b = b, a = 0.8},
+								})
 
-								function point:onExit()
-									canHarvest = false
-									harvestData = {
-										id = nil,
-										name = nil,
-										harvestId = nil,
-										coords = nil
-									}
-									lib.hideTextUI()
+								function point:nearby()
+									if self.currentDistance < 3.2 then
+										if self.currentDistance <= 3.0 then
+											marker:draw()
+										end
+
+										if self.currentDistance <= 1.7 then
+											if not canHarvest then
+												canHarvest = true
+												harvestData = {
+													id = id,
+													name = name,
+													harvestId = i,
+													coords = coords
+												}
+												lib.showTextUI(("**Vignoble**  \n*[%s] - Récolter*"):format(keybind.currentKey), {icon = "fas fa-leaf", iconColor = Config.harvest[zoneInfo].color, position = "left-center"})
+											end
+										elseif self.currentDistance > 3.0 then
+											if canHarvest then
+												canHarvest = false
+												harvestData = {
+													id = nil,
+													name = nil,
+													harvestId = nil,
+													coords = nil
+												}
+												lib.hideTextUI()
+											end
+										end
+									end
 								end
 
 								pointsLoaded[#pointsLoaded + 1] = point
-								particlesLoaded[#particlesLoaded + 1] = particles
 							end
 						end
+
 						lib.showTextUI(("**Vignoble**  \n*Type de champ: %s*"):format(Config.harvest[zoneInfo].label:lower()), {icon = "fas fa-leaf", iconColor = Config.harvest[zoneInfo].color, position = "left-center"})
 						insideArea = true
-						Wait(5000)
 
-						local isOpen, text = lib.isTextUIOpen()
-						if isOpen then
-							if text == ("**Vignoble**  \n*Type de champ: %s*"):format(Config.harvest[zoneInfo].label:lower()) then
-								lib.hideTextUI()
+						SetTimeout(5000, function()
+							local isOpen, text = lib.isTextUIOpen()
+							if isOpen then
+								if text == ("**Vignoble**  \n*Type de champ: %s*"):format(Config.harvest[zoneInfo].label:lower()) then
+									lib.hideTextUI()
+								end
 							end
-						end
+						end)
+
 					end,
 					onExit = function()
-						if #particlesLoaded > 0 then
-							for k, v in pairs(particlesLoaded) do
-								StopParticleFxLooped(v, 0)
-							end
-						end
-
 						if #pointsLoaded > 0 then
 							for k,v in pairs(pointsLoaded) do
 								v:remove()
 							end
 						end
 
-						lib.hideTextUI()
 						insideArea = false
 					end
 				})
