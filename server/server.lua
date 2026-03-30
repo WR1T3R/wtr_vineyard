@@ -1,10 +1,11 @@
-local harvested = {}
-
 local QBCore = exports["qb-core"]:GetCoreObject()
 local Config = require("shared.shared")
 
 local ox_inventory = exports.ox_inventory
+
 local occupiedStations = {}
+
+local harvested = {}
 
 local function isItemAllowlisted(id, name)
 	for k, v in pairs(Config.standaloneStore[id].items) do
@@ -247,6 +248,46 @@ lib.callback.register("wtr_vineyard:server:proceedStep", function(source, id, am
 	return true
 end)
 
+RegisterNetEvent("wtr_vineyard:server:proceedHarvest", function(harvestInfo, spotId, spotCoords, zoneName)
+	local src = source
+
+	if harvested?[zoneName]?[spotId]?.active then Writer.Notify(src, ("Cette vigne a déjà été récolté. Revenez dans %s"):format(Writer.FormatTime(harvested[zoneName][spotId].cooldown)), "error") return end
+	if Player(src).state["vineyard:collecting"] then return end
+
+	harvested[zoneName] = harvested[zoneName] or {}
+	harvested[zoneName][spotId] = {active = true, cooldown = harvestInfo.cooldown}
+
+	Player(src).state:set("vineyard:collecting", true, true)
+
+	local passed = lib.callback.await("wtr_vineyard:client:proceedHarvest", src, spotCoords, harvestInfo)
+	if not passed then 
+		harvested[zoneName][spotId] = nil
+		Player(src).state:set("vineyard:collecting", false, true)
+		return 
+	end
+
+	Player(src).state:set("vineyard:collecting", false, true)
+
+	for k, v in pairs(harvestInfo.items) do
+		ox_inventory:AddItem(src, v.name, math.random(v.count.min, v.count.max))
+	end
+end)
+
+CreateThread(function()
+	while true do
+		for zoneName, spots in pairs(harvested) do
+			for spotId, data in pairs(spots) do
+				if harvested[zoneName][spotId].cooldown == 0 then
+					harvested[zoneName][spotId] = nil
+				else
+					harvested[zoneName][spotId].cooldown -= 1
+				end
+			end
+		end
+		Wait(1000)
+	end
+end)
+
 lib.callback.register("wtr_vineyard:server:setupItems", function(source, func, item, amount, meta, slot)
 	local src = source
 
@@ -257,76 +298,8 @@ lib.callback.register("wtr_vineyard:server:setupItems", function(source, func, i
 	end
 end)
 
-lib.callback.register("wtr_vineyard:server:isHarvested", function(source, name, areasId, harvestId)
-	local src = source
-	local newName = tostring(name)
-	local newAreasID = tostring(areasId)
-	local newHarvestID = tostring(harvestId)
-
-	if harvested[newName] then
-		if harvested[newName][newAreasID] then
-			if harvested[newName][newAreasID][newHarvestID] then
-				if harvested[newName][newAreasID][newHarvestID].active then
-					return true, harvested[newName][newAreasID][newHarvestID]
-				end
-			end
-		end
-	end
-
-	return false
-end)
-
-lib.callback.register("wtr_vineyard:server:setHarvested", function(source, name, areasId, harvestId, cooldown)
-	local src = source
-	local newName = tostring(name)
-	local newAreasID = tostring(areasId)
-	local newHarvestID = tostring(harvestId)
-
-	if harvested[newName] then
-		if harvested[newName][newAreasID] then
-			harvested[newName][newAreasID][newHarvestID] = {active = true, cooldown = cooldown}
-		else
-			harvested[newName][newAreasID] = {
-				[newHarvestID] = {active = true, cooldown = cooldown}
-			}
-		end
-	else
-		harvested[newName] = {
-			[newAreasID] = {
-				[newHarvestID] = {active = true, cooldown = cooldown}
-			}
-		}
-	end
-
-	return false
-end)
-
 lib.callback.register("wtr_vineyard:server:registerStash", function(source, id, label, slots, weight, owner)
 	ox_inventory:RegisterStash(id, label, slots, weight, owner)
-end)
-
-CreateThread(function()
-	while true do
-		for name, _ in pairs(harvested) do
-			if harvested[name] then
-				for areasID, _ in pairs(harvested[name]) do
-					if harvested[name][areasID] then
-						for harvestID, _ in pairs(harvested[name][areasID]) do
-							if harvested[name][areasID][harvestID] and harvested[name][areasID][harvestID].active and harvested[name][areasID][harvestID].cooldown then
-								harvested[name][areasID][harvestID].cooldown -= 1
-
-								if harvested[name][areasID][harvestID].cooldown == 0 then
-									harvested[name][areasID][harvestID] = nil
-								end
-							end
-						end
-					end
-				end
-			end
-		end
-
-		Wait(1000)
-	end
 end)
 
 CreateThread(function()

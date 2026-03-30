@@ -1,90 +1,47 @@
 local Config = require("shared.shared")
 local Utils = require("client.utils")
 local areas = require("shared.areas")
+
 local insideArea = false
-local canHarvest = false
 local pointsLoaded = {}
-local particlesLoaded = {}
+local plyState = LocalPlayer.state
 
-local QBCore = exports["qb-core"]:GetCoreObject()
-local playerJob = {}
-
-local harvestData = {
-	id = nil,
-	name = nil,
-	harvestId = nil,
-	coords = nil
-}
+local inCooldown = false
 
 local keybind = lib.addKeybind({
     name = 'respects',
     description = 'Récolter des raisins',
     defaultKey = 'E',
-    onPressed = function(self)
-		if insideArea and canHarvest then
-			local isHarvested, data = lib.callback.await("wtr_vineyard:server:isHarvested", false, harvestData.name, harvestData.id, harvestData.harvestId)
-
-			if not isHarvested then
-				local zoneInfo = Utils.getInfoFromName(harvestData.name)
-
-				if Config.harvest[zoneInfo].job.active then
-					if playerJob.name == Config.harvest[zoneInfo].job.name and playerJob.grade.level >= Config.harvest[zoneInfo].job.grade then
-					else
-						if playerJob.name == Config.harvest[zoneInfo].job.name and playerJob.grade.level < Config.harvest[zoneInfo].job.grade then
-							lib.notify({description = "Vous n'avez pas le grade requis pour récolter des raisins", type = "error"})
-							return
-						else
-							lib.notify({description = "Vous n'avez pas l'emploi requis pour récolter des raisins", type = "error"})
-							return
-						end
-					end
-				end
-
-				self:disable(true)
-				lib.callback.await("wtr_vineyard:server:setHarvested", false, harvestData.name, harvestData.id, harvestData.harvestId, Config.harvest[zoneInfo].cooldown)
-				TaskTurnPedToFaceCoord(cache.ped, harvestData.coords, 1000)
-
-				if lib.progressCircle({
-					duration = (Config.harvest[zoneInfo].harvestTime * 1000),
-					label = "Récolte en cours..",
-					position = 'bottom',
-					useWhileDead = false,
-					canCancel = false,
-					disable = {
-						move = true,
-						car = true,
-						combat = true,
-					},
-					anim = {
-						dict = 'amb@prop_human_movie_bulb@idle_a',
-						clip = 'idle_b'
-					},
-				})
-				then
-					self:disable(false)
-					lib.notify({description = "Vigne récoltée avec succès", type = "success"})
-
-					for k,v in pairs(Config.harvest[zoneInfo].items) do
-						lib.callback.await("wtr_vineyard:server:setupItems", false, "give", v.name, math.random(v.count.min, v.count.max))
-					end
-				end
-			else
-				lib.notify({description = ("Cette vigne est déjà récoltée (Revenez dans %s)"):format(Utils.getFormatTime(data.cooldown)), type = "error"})
-			end
-		end
-    end,
 })
+keybind:disable(true)
 
-RegisterNetEvent("QBCore:Client:OnJobUpdate", function(job)
-	playerJob = job
-end)
+local function proceedHarvest(spotCoords, harvestData)
+	TaskTurnPedToFaceCoord(cache.ped, spotCoords, 10)
+
+	local progress = Writer.SendProgress({
+		duration = (harvestData.harvestTime * 1000),
+		label = harvestData.progressBar.label or "Récolte en cours",
+		position = 'bottom',
+		useWhileDead = false,
+		canCancel = true,
+		disable = {
+			move = true,
+			car = true,
+			combat = true,
+		},
+		anim = harvestData.progressBar.anim,
+		prop = harvestData.progressBar.prop
+	})
+
+	return progress
+end
+lib.callback.register("wtr_vineyard:client:proceedHarvest", proceedHarvest)
 
 CreateThread(function()
 	while not LocalPlayer.state.isLoggedIn do Wait(30) end
 
-	playerJob = Writer.GetJob()
+	plyState:set("vineyard:collecting", false, true)
 
-	lib.print.info(playerJob)
 	for name, locations in pairs(areas) do
 		local zoneInfo = Utils.getInfoFromName(name)
 
@@ -95,9 +52,11 @@ CreateThread(function()
 					thickness = zones.thickness,
 					debug = Config.debugPoly,
 					onEnter = function()
-						if zones.harvestLocations and #zones.harvestLocations > 0 then
-							for i = 1, #zones.harvestLocations do
-								local coords = zones.harvestLocations[i]
+						local playerJob = Writer.GetJob()
+
+						if (Writer.GetTableSize(zones.harvestLocations or {}) > 0) then
+							for spotId, spotCoords in pairs(zones.harvestLocations) do
+								local coords = spotCoords
 
 								local point = lib.points.new({
 									coords = coords,
@@ -116,31 +75,54 @@ CreateThread(function()
 								})
 
 								function point:nearby()
-									if self.currentDistance < 3.2 then
-										if self.currentDistance <= 3.0 then
-											marker:draw()
-										end
+									local canPass = false
 
-										if self.currentDistance <= 1.7 then
-											if not canHarvest then
-												canHarvest = true
-												harvestData = {
-													id = id,
-													name = name,
-													harvestId = i,
-													coords = coords
-												}
-												lib.showTextUI(("**Vignoble**  \n*[%s] - Récolter*"):format(keybind.currentKey), {icon = "fas fa-leaf", iconColor = Config.harvest[zoneInfo].color, position = "left-center"})
+									if Config.harvest[zoneInfo].job.active then
+										if playerJob.name == Config.harvest[zoneInfo].job.name and playerJob.grade >= Config.harvest[zoneInfo].job.grade then
+											canPass = true
+										else
+											canPass = false
+										end
+									else
+										canPass = true
+									end
+
+									if canPass then
+										if self.currentDistance < 3.2 then
+											if self.currentDistance <= 3.0 then
+												marker:draw()
 											end
-										elseif self.currentDistance > 3.0 then
-											if canHarvest then
-												canHarvest = false
-												harvestData = {
-													id = nil,
-													name = nil,
-													harvestId = nil,
-													coords = nil
-												}
+
+										
+											if self.currentDistance <= 1.7 then
+												if not plyState["vineyard:collecting"] then
+													keybind:disable(false)
+													keybind.onPressed = function(keybindData)
+														if not inCooldown then
+															if insideArea and not plyState["vineyard:collecting"] then
+
+																inCooldown = true
+																SetTimeout(1500, function()
+																	inCooldown = false
+																end)
+
+																TriggerServerEvent("wtr_vineyard:server:proceedHarvest", Config.harvest[zoneInfo], spotId, spotCoords, name)
+															else
+																inCooldown = true
+																SetTimeout(1500, function()
+																	inCooldown = false
+																end)
+															end
+														else
+															Writer.Notify("Ça ne sert à rien de spam", "error")
+														end
+													end
+
+													lib.showTextUI(("**Vignoble**  \n*[%s] - Récolter*"):format(keybind.currentKey), {icon = "fas fa-leaf", iconColor = Config.harvest[zoneInfo].color, position = "left-center"})
+												end
+											elseif self.currentDistance > 2.0 then
+												keybind:disable(false)
+												keybind.onPressed = function(keybindData) end
 												lib.hideTextUI()
 											end
 										end
@@ -151,13 +133,13 @@ CreateThread(function()
 							end
 						end
 
-						lib.showTextUI(("**Vignoble**  \n*Type de champ: %s*"):format(Config.harvest[zoneInfo].label:lower()), {icon = "fas fa-leaf", iconColor = Config.harvest[zoneInfo].color, position = "left-center"})
+						lib.showTextUI(("**Vignoble**  \n*Type de champ: %s*"):format(Writer.FirstToUpper(Config.harvest[zoneInfo].label:lower())), {icon = "fas fa-leaf", iconColor = Config.harvest[zoneInfo].color, position = "left-center"})
 						insideArea = true
 
 						SetTimeout(5000, function()
 							local isOpen, text = lib.isTextUIOpen()
 							if isOpen then
-								if text == ("**Vignoble**  \n*Type de champ: %s*"):format(Config.harvest[zoneInfo].label:lower()) then
+								if text == ("**Vignoble**  \n*Type de champ: %s*"):format(Writer.FirstToUpper(Config.harvest[zoneInfo].label:lower())) then
 									lib.hideTextUI()
 								end
 							end

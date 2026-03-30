@@ -1,5 +1,5 @@
 return {
-	debugPoly = true,
+	debugPoly = false,
 
 	maxPredefinedAmount = {
 		["fill"] = 24,
@@ -11,6 +11,14 @@ return {
 	harvest = {
 		[1] = {
 			label = "Raisins roses",
+			progressBar = {
+				label = "Récolte en cours",
+				anim = {
+					dict = 'amb@prop_human_movie_bulb@idle_a',
+					clip = 'idle_b'
+				},
+				prop = {},
+			},
 			color = "#d598ce",
 			cooldown = 90,
 			job = {
@@ -26,6 +34,14 @@ return {
 		},
 		[2] = {
 			label = "Raisins blancs",
+			progressBar = {
+				label = "Récolte en cours",
+				anim = {
+					dict = 'amb@prop_human_movie_bulb@idle_a',
+					clip = 'idle_b'
+				},
+				prop = {},
+			},
 			color = "#ffffff",
 			cooldown = 90,
 			job = {
@@ -41,6 +57,14 @@ return {
 		},
 		[3] = {
 			label = "Raisins rouges",
+			progressBar = {
+				label = "Récolte en cours",
+				anim = {
+					dict = 'amb@prop_human_movie_bulb@idle_a',
+					clip = 'idle_b'
+				},
+				prop = {},
+			},
 			color = "#d9635b",
 			cooldown = 90,
 			job = {
