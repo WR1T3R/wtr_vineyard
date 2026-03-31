@@ -288,20 +288,6 @@ CreateThread(function()
 	end
 end)
 
-lib.callback.register("wtr_vineyard:server:setupItems", function(source, func, item, amount, meta, slot)
-	local src = source
-
-	if func == "give" then
-		ox_inventory:AddItem(src, item, amount, meta, slot)
-	elseif func == "remove" then
-		ox_inventory:RemoveItem(src, item, amount, meta, slot)
-	end
-end)
-
-lib.callback.register("wtr_vineyard:server:registerStash", function(source, id, label, slots, weight, owner)
-	ox_inventory:RegisterStash(id, label, slots, weight, owner)
-end)
-
 CreateThread(function()
 	for k, v in pairs(Config.standaloneStore) do
 		local stashId = ("wtr_vineyard:standaloneShop:%s"):format(k)
@@ -327,6 +313,10 @@ CreateThread(function()
 			locations = {vec3(v.peds.coords.x, v.peds.coords.y, v.peds.coords.z)},
 		})
 	end
+
+	for k, v in pairs(Config.stashes) do
+		ox_inventory:RegisterStash(("wtr_vineyard:stash:%s"):format(v.id), v.label, v.slots, v.weight, v.owner, v.job.active and {[v.job.name] = v.job.grade} or nil, v.zone.coords)
+	end
 end)
 
 lib.callback.register("wtr_vineyard:server:drink", function(source, data)
@@ -340,24 +330,56 @@ lib.callback.register("wtr_vineyard:server:drink", function(source, data)
 	TriggerClientEvent('hud:client:UpdateNeeds', src, player.PlayerData.metadata["hunger"], player.PlayerData.metadata["thirst"])
 end)
 
-for k, v in pairs(Config.consumables.bottles) do
-	QBCore.Functions.CreateUseableItem(v.itemName, function(source, item)
-		local src = source
-		lib.callback.await("wtr_vineyard:client:preparePour", src, v)
-	end)
-end
+AddEventHandler('ox_inventory:usedItem', function(playerId, name, slotId, metadata) 
+	local src = playerId
 
-for k, v in pairs(Config.consumables.glass) do
-	QBCore.Functions.CreateUseableItem(v.itemName, function(source, item)
-		local src = source
-		local player = QBCore.Functions.GetPlayer(src)
+	if not Config.consumables[name] then
+		return
+	end
 
-		local passed = lib.callback.await("wtr_vineyard:client:drinkGlass", src, v)
+	local consumable = Config.consumables[name]
+	local selected = "drink"
+
+	if consumable.pour then
+		local option = lib.callback.await("wtr_vineyard:client:selectDrinkOption", src, consumable.pour)
+		if not option then return end
+
+		selected = option
+	end
+
+	if selected == "pour" then
+		local canPass = Writer.CanCraft(src, consumable.pour.required, 1)
+		if not canPass then 
+			Writer.Notify(src, "Vous n'avez pas les items requis pour faire le versage", "error")
+			return 
+		end
+
+		local passed = lib.callback.await("wtr_vineyard:client:processDrink", src, consumable.pour)
 		if not passed then return end
 
-		Writer.UpdateStatus(src, "add", "thirst", v.drink.status.thirst)
+		for k, v in pairs(consumable.pour.required) do
+			if v.remove then
+				ox_inventory:RemoveItem(src, v.name, v.count)
+			end
+		end
 
-		ox_inventory:AddItem(src, v.add.itemName, v.add.count)
-		ox_inventory:RemoveItem(src, v.itemName, 1)
-	end)
-end
+		for k, v in pairs(consumable.pour.add) do
+			ox_inventory:AddItem(src, v.name, v.count)
+		end
+
+		if consumable.status?.thirst then
+			Writer.UpdateStatus(src, "add", "thirst", consumable.status.thirst)
+		end
+
+		ox_inventory:RemoveItem(src, name, 1, nil, slotId)
+	elseif selected == "drink" then
+		local passed = lib.callback.await("wtr_vineyard:client:processDrink", src, consumable.consume)
+		if not passed then return end
+
+		if consumable.status?.thirst then
+			Writer.UpdateStatus(src, "add", "thirst", consumable.status.thirst)
+		end
+
+		ox_inventory:RemoveItem(src, name, 1, nil, slotId)
+	end
+end)

@@ -66,7 +66,8 @@ CreateThread(function()
 								local r, g, b = lib.math.hextorgb(Config.harvest[zoneInfo].color)
 								local marker = lib.marker.new({
 									type = 2,
-									width = 1,
+									width = 0.5,
+									height = 0.5,
 									rotation = vec3(180.0, 0.0, 0.0),
 									bobUpAndDown = true,
 									faceCamera = true,

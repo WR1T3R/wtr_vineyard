@@ -453,126 +453,184 @@ return {
 			label = "Stockage",
 			id = "stock1",
 			slots = 50,
-			weight = 10000000,
-			owner = false,
+			weight = 10000000
 		},
 	},
 
 	consumables = {
-		bottles = {
-			{
-				itemName = "rose_wine_bottle",
-				drink = {
-					status = {
-						thirst = -10,
-					}
-				},
-				duration = 6,
-				animation = {
-					dict = 'amb@world_human_drinking@coffee@male@idle_a',
-					clip = 'idle_c',
-					propName = 'prop_wine_white'
-				},
-				pour = {
-					duration = 4,
-					required = {
-						{itemName = "wine_glass", count = 4, remove = true},
-					},
-					add = {itemName = "rose_wine_glass", count = 4}
-				}
+		["rose_wine_bottle"] = {
+			status = {
+				thirst = -10
 			},
-			{
-				itemName = "white_wine_bottle",
-				drink = {
-					status = {
-						thirst = -10,
-					}
-				},
-				duration = 6,
-				animation = {
+			consume = {	
+				label = "Consommation en cours",
+				anim = {
 					dict = 'amb@world_human_drinking@coffee@male@idle_a',
-					clip = 'idle_c',
-					propName = 'prop_wine_white'
+					clip = 'idle_c'
 				},
-				pour = {
-					duration = 4,
-					required = {
-						{itemName = "wine_glass", count = 4, remove = true},
-					},
-					add = {itemName = "white_wine_glass", count = 4}
-				}
+				prop = {
+					model = 'prop_wine_rose',
+					bone = 57005,
+					pos = vec3(0.08, -0.22, -0.11),
+					rot = vec3(-70.0, 50.0, 0.0)
+				},
+				duration = 4
 			},
-			{
-				itemName = "red_wine_bottle",
-				drink = {
-					status = {
-						thirst = -10,
-					}
-				},
-				duration = 6,
-				animation = {
+			pour = {
+				label = "Versage en cours",
+				anim = {
 					dict = 'amb@world_human_drinking@coffee@male@idle_a',
 					clip = 'idle_c',
-					propName = 'prop_wine_white'
 				},
-				pour = {
-					duration = 4,
-					required = {
-						{itemName = "wine_glass", count = 4, remove = true},
-					},
-					add = {itemName = "red_wine_glass", count = 4}
+				prop = {
+					model = 'prop_wine_rose',
+					bone = 57005,
+					pos = vec3(0.08, -0.22, -0.11),
+					rot = vec3(-70.0, 50.0, 0.0)
+				},
+				duration = 4,
+				required = {
+					{name = "wine_glass", count = 4, remove = true},
+				},
+				add = {
+					{name = "rose_wine_glass", count = 4}
 				}
 			}
 		},
-		glass = {
-			{
-				itemName = "red_wine_glass",
-				animation = {
+		["white_wine_bottle"] = {
+			status = {
+				thirst = -10
+			},
+			consume = {	
+				label = "Consommation en cours",
+				anim = {
+					dict = 'amb@world_human_drinking@coffee@male@idle_a',
+					clip = 'idle_c'
+				},
+				prop = {
+					model = 'prop_wine_white',
+					bone = 57005,
+					pos = vec3(0.08, -0.22, -0.11),
+					rot = vec3(-70.0, 50.0, 0.0)
+				},
+				duration = 4
+			},
+			pour = {
+				label = "Versage en cours",
+				anim = {
 					dict = 'amb@world_human_drinking@coffee@male@idle_a',
 					clip = 'idle_c',
-					propName = 'prop_drink_redwine'
 				},
-				duration = 6,
-				drink = {
-					status = {
-						thirst = -5,
-						drunk = 10000,
-					}
+				prop = {
+					model = 'prop_wine_white',
+					bone = 57005,
+					pos = vec3(0.08, -0.22, -0.11),
+					rot = vec3(-70.0, 50.0, 0.0)
 				},
-				add = {itemName = "wine_glass", count = 1}
+				duration = 4,
+				required = {
+					{name = "wine_glass", count = 4, remove = true},
+				},
+				add = {
+					{name = "white_wine_glass", count = 4}
+				}
+			}
+		},
+		["red_wine_bottle"] = {
+			status = {
+				thirst = -10
 			},
-			{
-				itemName = "rose_wine_glass",
-				animation = {
+			consume = {	
+				label = "Consommation en cours",
+				anim = {
+					dict = 'amb@world_human_drinking@coffee@male@idle_a',
+					clip = 'idle_c'
+				},
+				prop = {
+					model = 'prop_wine_red',
+					bone = 57005,
+					pos = vec3(0.08, -0.22, -0.11),
+					rot = vec3(-70.0, 50.0, 0.0)
+				},
+				duration = 4
+			},
+			pour = {
+				label = "Versage en cours",
+				anim = {
 					dict = 'amb@world_human_drinking@coffee@male@idle_a',
 					clip = 'idle_c',
-					propName = 'prop_drink_redwine'
 				},
-				duration = 6,
-				drink = {
-					status = {
-						thirst = -5,
-						drunk = 10000,
-					}
+				prop = {
+					model = 'prop_wine_red',
+					bone = 57005,
+					pos = vec3(0.08, -0.22, -0.11),
+					rot = vec3(-70.0, 50.0, 0.0)
 				},
-				add = {itemName = "wine_glass", count = 1}
+				duration = 4,
+				required = {
+					{name = "wine_glass", count = 4, remove = true},
+				},
+				add = {
+					{name = "red_wine_glass", count = 4}
+				}
+			}
+		},
+		["red_wine_glass"] = {
+			status = {
+				thirst = -5
 			},
-			{
-				itemName = "white_wine_glass",
-				animation = {
+			consume = {	
+				label = "Consommation en cours",
+				anim = {
 					dict = 'amb@world_human_drinking@coffee@male@idle_a',
-					clip = 'idle_c',
-					propName = 'prop_drink_whtwine',
+					clip = 'idle_c'
 				},
-				duration = 6,
-				drink = {
-					status = {
-						thirst = -5,
-						drunk = 10000,
-					}
+				prop = {
+					model = 'prop_drink_redwine',
+					bone = 57005,
+					pos = vec3(0.14, -0.07, -0.01),
+					rot = vec3(-80.0, 100.0, 0.0)
 				},
-				add = {itemName = "wine_glass", count = 1}
+				duration = 4
+			}
+		},
+		["rose_wine_glass"] = {
+			status = {
+				thirst = -5
 			},
+			consume = {	
+				label = "Consommation en cours",
+				anim = {
+					dict = 'amb@world_human_drinking@coffee@male@idle_a',
+					clip = 'idle_c'
+				},
+				prop = {
+					model = 'prop_drink_redwine',
+					bone = 57005,
+					pos = vec3(0.14, -0.07, -0.01),
+					rot = vec3(-80.0, 100.0, 0.0)
+				},
+				duration = 4
+			}
+		},
+		["white_wine_glass"] = {
+			status = {
+				thirst = -5
+			},
+			consume = {	
+				label = "Consommation en cours",
+				anim = {
+					dict = 'amb@world_human_drinking@coffee@male@idle_a',
+					clip = 'idle_c'
+				},
+				prop = {
+					model = 'prop_drink_whtwine',
+					bone = 57005,
+					pos = vec3(0.14, -0.07, -0.01),
+					rot = vec3(-80.0, 100.0, 0.0)
+				},
+				duration = 4
+			}
 		}
 	}
 }
