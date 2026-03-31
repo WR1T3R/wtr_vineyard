@@ -94,7 +94,7 @@ CreateThread(function()
 												marker:draw()
 											end
 
-										
+
 											if self.currentDistance <= 1.7 then
 												if not plyState["vineyard:collecting"] then
 													keybind:disable(false)

@@ -462,7 +462,7 @@ return {
 			status = {
 				thirst = -10
 			},
-			consume = {	
+			consume = {
 				label = "Consommation en cours",
 				anim = {
 					dict = 'amb@world_human_drinking@coffee@male@idle_a',
@@ -501,7 +501,7 @@ return {
 			status = {
 				thirst = -10
 			},
-			consume = {	
+			consume = {
 				label = "Consommation en cours",
 				anim = {
 					dict = 'amb@world_human_drinking@coffee@male@idle_a',
@@ -540,7 +540,7 @@ return {
 			status = {
 				thirst = -10
 			},
-			consume = {	
+			consume = {
 				label = "Consommation en cours",
 				anim = {
 					dict = 'amb@world_human_drinking@coffee@male@idle_a',
@@ -579,7 +579,7 @@ return {
 			status = {
 				thirst = -5
 			},
-			consume = {	
+			consume = {
 				label = "Consommation en cours",
 				anim = {
 					dict = 'amb@world_human_drinking@coffee@male@idle_a',
@@ -598,7 +598,7 @@ return {
 			status = {
 				thirst = -5
 			},
-			consume = {	
+			consume = {
 				label = "Consommation en cours",
 				anim = {
 					dict = 'amb@world_human_drinking@coffee@male@idle_a',
@@ -617,7 +617,7 @@ return {
 			status = {
 				thirst = -5
 			},
-			consume = {	
+			consume = {
 				label = "Consommation en cours",
 				anim = {
 					dict = 'amb@world_human_drinking@coffee@male@idle_a',

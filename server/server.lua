@@ -260,10 +260,10 @@ RegisterNetEvent("wtr_vineyard:server:proceedHarvest", function(harvestInfo, spo
 	Player(src).state:set("vineyard:collecting", true, true)
 
 	local passed = lib.callback.await("wtr_vineyard:client:proceedHarvest", src, spotCoords, harvestInfo)
-	if not passed then 
+	if not passed then
 		harvested[zoneName][spotId] = nil
 		Player(src).state:set("vineyard:collecting", false, true)
-		return 
+		return
 	end
 
 	Player(src).state:set("vineyard:collecting", false, true)
@@ -330,7 +330,7 @@ lib.callback.register("wtr_vineyard:server:drink", function(source, data)
 	TriggerClientEvent('hud:client:UpdateNeeds', src, player.PlayerData.metadata["hunger"], player.PlayerData.metadata["thirst"])
 end)
 
-AddEventHandler('ox_inventory:usedItem', function(playerId, name, slotId, metadata) 
+AddEventHandler('ox_inventory:usedItem', function(playerId, name, slotId, metadata)
 	local src = playerId
 
 	if not Config.consumables[name] then
@@ -349,9 +349,9 @@ AddEventHandler('ox_inventory:usedItem', function(playerId, name, slotId, metada
 
 	if selected == "pour" then
 		local canPass = Writer.CanCraft(src, consumable.pour.required, 1)
-		if not canPass then 
+		if not canPass then
 			Writer.Notify(src, "Vous n'avez pas les items requis pour faire le versage", "error")
-			return 
+			return
 		end
 
 		local passed = lib.callback.await("wtr_vineyard:client:processDrink", src, consumable.pour)
